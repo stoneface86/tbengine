@@ -89,11 +89,53 @@ Start:
     ; enable interrupts
 	ei
 
+    ld a, $80
+    ld [rNR52], a   ; sound on
+    ld a, $11
+    ld [rNR51], a   ; enable both terminals for CH1
+    ld a, $FF
+    ld [rNR50], a   ; both terminals on at max volume
+
+    ld a, $80
+    ld [rNR11], a   ; Duty = 02 (50%)
+    ld a, $F0
+    ld [rNR12], a   ; envelope = constant volume F
+    ld a, $80
+    ld [rNR14], a   ; start playing sound
+
+    ; frequency, C-4
+    ld de, $706
+    ; vibrato index
+    ld b, $0
+    ; extent
+    ld c, $4
 
 .gameloop
     call WaitVBlank
 
-    ; do stuff
+    ; vibrato example, (demo purposes only, will be moved to library)
+    ; this is what effect 441 will sound like
+
+    ; get the current vibrato value
+    call lookupVibrato
+    ; set hl to register a and sign-extend
+    ld l, a
+    add a
+    sbc a
+    ld h, a
+    add hl, de ; hl is our base frequency + vibrato value
+
+    ld a, l         ; set the new frequency
+    ld [rNR13], a
+    ld a, h
+    and a, $7
+    ld [rNR14], a
+
+    ; advance vibrato index
+    ld a, b
+    add a, $1       ; add the speed to advance the index
+    and a, $3F      ; keep the index within the period
+    ld b, a
 
     jr .gameloop
 

@@ -8,7 +8,7 @@
 
 # some important paths (no trailing slash)
 BUILD_DIR := build
-INC_DIR := inc
+INC_DIR := inc/
 SRC_DIR := ./
 
 #
@@ -52,13 +52,15 @@ FIX_FLAGS := -f lhg -i "$(ROM_ID)" -t "$(ROM_TITLE)" -p 0x0
 # or a different build directory can be used by overriding BUILD_DIR
 -include user.mk
 
+GBSOUND_OBJ := gbsound.obj
 #
 # List of object files to build, when adding a new assembly file, add its
 # object file here (preferably in alphabetical order).
 # Note: globbing could be used, but I do not recommend it for various reasons
 #       (speed, excluding files is a pain, etc)
 #
-OBJ_FILES := demo/main.obj
+OBJ_FILES := demo/main.obj \
+             $(GBSOUND_OBJ)
 OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))
 
 # dependency files to be created by the assembler
