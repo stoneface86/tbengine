@@ -52,7 +52,7 @@ FIX_FLAGS := -f lhg -i "$(ROM_ID)" -t "$(ROM_TITLE)" -p 0x0
 # or a different build directory can be used by overriding BUILD_DIR
 -include user.mk
 
-GBSOUND_OBJ := gbsound.obj
+LIB_OBJ_FILES := lib/gbsound.obj
 #
 # List of object files to build, when adding a new assembly file, add its
 # object file here (preferably in alphabetical order).
@@ -60,15 +60,11 @@ GBSOUND_OBJ := gbsound.obj
 #       (speed, excluding files is a pain, etc)
 #
 OBJ_FILES := demo/main.obj \
-             $(GBSOUND_OBJ)
+             $(LIB_OBJ_FILES)
 OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))
 
 # dependency files to be created by the assembler
-# not currently used due to the way files are include'd currently
-# NOTE: this actually stalls the build due to repeated includes, some .d files
-# end up being ~200 lines long due to no guards on src/Includes.inc and a
-# possible bug with RGBASM (duplicate entries)
-#OBJ_DEPS := $(OBJ_FILES:.obj=.d)
+OBJ_DEPS := $(OBJ_FILES:.obj=.d)
 
 # get a list of all directories that will need to be created when building
 # patsubst removes the trailing slash
@@ -87,10 +83,8 @@ all: $(ROM_GB)
 
 define ASSEMBLE_RULE
 	@echo "ASM      $@"
-	@$(RGBASM) $(ASM_FLAGS) -o $@ $<
+	@$(RGBASM) $(ASM_FLAGS) -M $(BUILD_DIR)/$*.d -o $@ $<
 endef
-#	@$(RGBASM) $(ASM_FLAGS) -M $(BUILD_DIR)/$*.d -o $@ $<
-
 
 #
 # Pattern rule for assembly source to an object file
@@ -106,7 +100,6 @@ $(BUILD_DIR)/%.obj: $(SRC_DIR)/%.z80 $(MAKEFILE_LIST)
 
 #
 # Pattern rule for png images to planar tile format
-# (Note: I removed the '-f' option from the build script)
 #
 $(BUILD_DIR)/%.png.2bpp: $(SRC_DIR)/%.png $(MAKEFILE_LIST)
 	@echo "GFX      $@"
@@ -145,6 +138,5 @@ run: $(ROM_GB)
 
 #
 # assembler-generated dependency files
-# NOT USED
 #
-#-include $(OBJ_DEPS)
+-include $(OBJ_DEPS)

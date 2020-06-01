@@ -7,6 +7,7 @@ For the tracker program see [trackerboy][trackerboy-link].
 
 * `inc/` - include directory
 * `demo/` - code for building the demo ROM
+* `lib/` - the engine
 * `build/` - assembled files/ROMs will be built here
 
 # Building
