@@ -1,7 +1,7 @@
-# gbsoundengine
+# tbengine
 
-Music/SFX engine for the gameboy. Also serves as the driver for my gameboy
-tracker, [trackerboy][trackerboy-link].
+Trackerboy engine, a Music/SFX engine for the gameboy. This reposistory contains the source code for the driver.
+For the tracker program see [trackerboy][trackerboy-link].
 
 
 # Versioning
