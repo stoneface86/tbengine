@@ -1,6 +1,6 @@
 # gbsoundengine
 
-Music/SFX engine for the gameboy. Also servers as the driver for my gameboy
+Music/SFX engine for the gameboy. Also serves as the driver for my gameboy
 tracker, [trackerboy][trackerboy-link].
 
 

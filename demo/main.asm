@@ -108,36 +108,36 @@ Start:
     ; vibrato index
     ld b, $0
     ; extent
-    ld c, $4
+    ld c, $1
 
 .gameloop
-    call WaitVBlank
+    call    WaitVBlank
 
     ; vibrato example, (demo purposes only, will be moved to library)
     ; this is what effect 441 will sound like
 
     ; get the current vibrato value
-    call lookupVibrato
-    ; set hl to register a and sign-extend
-    ld l, a
-    add a
-    sbc a
-    ld h, a
-    add hl, de ; hl is our base frequency + vibrato value
+    call    lookupVibrato
+    
+    ld      l, a            ; set hl to register a and sign-extend
+    add     a
+    sbc     a
+    ld      h, a
+    add     hl, de          ; hl is our base frequency + vibrato value
 
-    ld a, l         ; set the new frequency
-    ld [rNR13], a
-    ld a, h
-    and a, $7
-    ld [rNR14], a
+    ld      a, l            ; set the new frequency
+    ld      [rNR13], a
+    ld      a, h
+    and     a, $7
+    ld      [rNR14], a
 
     ; advance vibrato index
-    ld a, b
-    add a, $1       ; add the speed to advance the index
-    and a, $3F      ; keep the index within the period
-    ld b, a
+    ld      a, b
+    add     a, $F           ; add the speed to advance the index
+    and     a, $3F          ; keep the index within the period
+    ld      b, a
 
-    jr .gameloop
+    jr      .gameloop
 
 
 VBlank_isr:
