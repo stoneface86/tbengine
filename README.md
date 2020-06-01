@@ -1,7 +1,24 @@
 # tbengine
 
-Trackerboy engine, a Music/SFX engine for the gameboy. This reposistory contains the source code for the driver.
+Trackerboy engine, a Music/SFX engine for the gameboy. This repository contains the source code for the driver.
 For the tracker program see [trackerboy][trackerboy-link].
+
+# Project structure
+
+* `inc/` - include directory
+* `demo/` - code for building the demo ROM
+* `build/` - assembled files/ROMs will be built here
+
+# Building
+
+You will need RGBDS and Make in order to build. If RGBDS is not in your path you must configure
+the makefile by adding a `user.mk` file with path overrides for each RGBDS program.
+
+To build:
+```sh
+make
+```
+This will build the library and demo ROM in the configured build directory (default is `build/`)
 
 
 # Versioning
