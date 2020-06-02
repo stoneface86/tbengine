@@ -46,13 +46,14 @@ BGB := bgb
 ASM_FLAGS := -i $(INC_DIR)
 LINK_FLAGS := -m $(ROM_MAP) -n $(ROM_SYM)
 FIX_FLAGS := -f lhg -i "$(ROM_ID)" -t "$(ROM_TITLE)" -p 0x0
+DEFINES := -D TBE_ROM0
 
 # (optional) user-specific overrides
 # this can be used to specify the location of the RGBDS toolchain manually
 # or a different build directory can be used by overriding BUILD_DIR
 -include user.mk
 
-LIB_OBJ_FILES := lib/gbsound.obj
+LIB_OBJ_FILES := lib/engine.obj
 #
 # List of object files to build, when adding a new assembly file, add its
 # object file here (preferably in alphabetical order).
@@ -83,7 +84,7 @@ all: $(ROM_GB)
 
 define ASSEMBLE_RULE
 	@echo "ASM      $@"
-	@$(RGBASM) $(ASM_FLAGS) -M $(BUILD_DIR)/$*.d -o $@ $<
+	@$(RGBASM) $(ASM_FLAGS) $(DEFINES) -M $(BUILD_DIR)/$*.d -o $@ $<
 endef
 
 #
@@ -118,12 +119,10 @@ $(OBJ_DIRS):
 	@mkdir -p $@
 
 #
-# Clean will delete everything in the build directory except for:
-#    - .gitkeep
-#    - $(BUILD_DIR) itself
+# Remove all built files
 #
 clean:
-	find "$(BUILD_DIR)" ! -name .gitkeep ! -path $(BUILD_DIR) -delete
+	rm -f $(ROM_GB) $(ROM_SYM) $(ROM_MAP) $(OBJ_FILES) $(OBJ_DEPS)
 
 run: $(ROM_GB)
 	@echo "RUN      $(ROM_GB)"
