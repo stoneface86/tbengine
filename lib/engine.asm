@@ -66,5 +66,3 @@ lookupVibrato::
     pop     hl
     ret
 
-
-INCLUDE "lib/tables.asm"

@@ -53,7 +53,16 @@ DEFINES := -D TBE_ROM0
 # or a different build directory can be used by overriding BUILD_DIR
 -include user.mk
 
-LIB_OBJ_FILES := lib/engine.obj
+LIB_SRC := lib/info.asm \
+           lib/engine.asm \
+           lib/tables.asm
+
+#
+# The library is combined into a single asm file for releases
+#
+LIB_FILE := $(BUILD_DIR)/tbengine.asm
+
+LIB_OBJ_FILES := lib/all.obj
 #
 # List of object files to build, when adding a new assembly file, add its
 # object file here (preferably in alphabetical order).
@@ -82,6 +91,8 @@ OBJ_DIRS := $(patsubst %/,%,$(sort $(dir $(OBJ_FILES))))
 #
 all: $(ROM_GB)
 
+lib: $(LIB_FILE)
+
 define ASSEMBLE_RULE
 	@echo "ASM      $@"
 	@$(RGBASM) $(ASM_FLAGS) $(DEFINES) -M $(BUILD_DIR)/$*.d -o $@ $<
@@ -98,6 +109,12 @@ $(BUILD_DIR)/%.obj: $(SRC_DIR)/%.asm $(MAKEFILE_LIST)
 #
 $(BUILD_DIR)/%.obj: $(SRC_DIR)/%.z80 $(MAKEFILE_LIST)
 	$(ASSEMBLE_RULE)
+
+#
+# library target
+#
+$(LIB_FILE): $(LIB_SRC) $(MAKEFILE_LIST)
+	cat $(LIB_SRC) > $@
 
 #
 # Pattern rule for png images to planar tile format
@@ -128,7 +145,7 @@ run: $(ROM_GB)
 	@echo "RUN      $(ROM_GB)"
 	@$(BGB) $(ROM_GB)
 
-.PHONY: all clean run
+.PHONY: all clean lib run
 
 #
 # Keep these files for debugging
