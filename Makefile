@@ -55,7 +55,8 @@ DEFINES := -D TBE_ROM0
 
 LIB_SRC := lib/info.asm \
            lib/engine.asm \
-           lib/tables.asm
+           lib/tables.asm \
+		   lib/wram.asm
 
 #
 # The library is combined into a single asm file for releases

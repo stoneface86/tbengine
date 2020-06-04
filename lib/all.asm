@@ -3,3 +3,4 @@
 
 include "lib/engine.asm"
 include "lib/tables.asm"
+include "lib/wram.asm"
