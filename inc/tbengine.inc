@@ -167,7 +167,7 @@ ENDM
 ; plays C-4 immediately and stalls for 1 row (plays for 2 rows)
 ; tbe_play <note> <duration> <delay>
 tbe_play: MACRO
-    STATIC_ASSERT \1 <= B_8, "invalid note index", FAIL
+    STATIC_ASSERT FATAL, \1 <= B_8, "invalid note index"
     _makeCmd CMD_PLAY, \1, \2, \3
 ENDM
 
@@ -212,7 +212,7 @@ tbe_ret: MACRO
 ENDM
 
 tbe_tempo: MACRO
-    STATIC_ASSERT \1 >= 8 && \1 < 248, "invalid speed", FAIL
+    STATIC_ASSERT FATAL, \1 >= 8 && \1 < 248, "invalid speed"
     _makeCmd CMD_TEMPO, \1, 0, 0
 ENDM
 

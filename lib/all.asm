@@ -1,7 +1,7 @@
 
 ; include everything here for the library
 
-include "lib/engine.asm"
-include "lib/commands.asm"
-include "lib/tables.asm"
-include "lib/wram.asm"
+INCLUDE "lib/engine.asm"
+INCLUDE "lib/commands.asm"
+INCLUDE "lib/tables.asm"
+INCLUDE "lib/wram.asm"

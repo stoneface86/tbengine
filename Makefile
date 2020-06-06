@@ -55,6 +55,7 @@ DEFINES := -D TBE_ROM0
 
 LIB_SRC := lib/info.asm \
            lib/engine.asm \
+		   lib/commands.asm \
            lib/tables.asm \
 		   lib/wram.asm
 

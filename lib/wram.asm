@@ -1,3 +1,5 @@
+; -----------------------------------------------------------------------------
+; WRAM variables
 
 FreqControlStruct: MACRO
 fc\1_flags:         DS 1
@@ -24,3 +26,4 @@ timerPeriod:    DS 1        ; number of frames per row in Q5.3 format
     FreqControlStruct 1     ; frequency control for CH1
     FreqControlStruct 2     ; CH2
     FreqControlStruct 3     ; CH3
+

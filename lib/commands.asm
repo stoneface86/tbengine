@@ -1,3 +1,5 @@
+; -----------------------------------------------------------------------------
+; Command functions
 
 cmdFnNote:
     ret
@@ -73,4 +75,4 @@ cmdFnInstrumentOff:
 
 cmdFnDelayedCut:
     ret
-    
+

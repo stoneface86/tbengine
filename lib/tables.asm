@@ -1,3 +1,6 @@
+; -----------------------------------------------------------------------------
+; Tables
+
 
 ;
 ; Command function pointer table
@@ -30,10 +33,6 @@ CommandTable:
     DW cmdFnInstrumentSet
     DW cmdFnInstrumentOff
     DW cmdFnDelayedCut
-    
-
-
-
 
 ; Note frequency table
 ; Octave range for CH1/CH2 is 2-8, CH3 is one lower (unless the waveform has 2 periods)

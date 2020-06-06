@@ -108,7 +108,7 @@ Start:
     ; vibrato index
     ld b, $0
     ; extent
-    ld c, $1
+    ld c, $4
 
 .gameloop
     call    WaitVBlank
@@ -133,7 +133,7 @@ Start:
 
     ; advance vibrato index
     ld      a, b
-    add     a, $F           ; add the speed to advance the index
+    add     a, $1           ; add the speed to advance the index
     and     a, $3F          ; keep the index within the period
     ld      b, a
 
