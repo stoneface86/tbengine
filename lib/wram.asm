@@ -7,12 +7,12 @@ fc\1_freq:          DS 6 ; frequency buffer
 fc\1_slideSpeed:    DS 1
 fc\1_slideTarget:   DS 2
 fc\1_slideNote:     DS 1
-fc\1_arpParam       DS 1
-fc\1_arpIndex       DS 1
-fc\1_vibCounter     DS 1
-fc\1_vibIndex       DS 1
-fc\1_vibSpeed       DS 1
-fc\1_vibTable       DS 2
+fc\1_arpParam:      DS 1
+fc\1_arpIndex:      DS 1
+fc\1_vibCounter:    DS 1
+fc\1_vibIndex:      DS 1
+fc\1_vibSpeed:      DS 1
+fc\1_vibTable:      DS 2
 ENDM
 
 
