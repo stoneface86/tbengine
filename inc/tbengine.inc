@@ -89,88 +89,184 @@ B_8 EQU 83
 
 ; commands
 
-; if the command index is > 16, the command has a length
-; these commands stall for an x number of rows before another command is run
-; Bits 0-1: type (play, cut, release, nop)
-; Bit    2: tick delay enable
-; Bit    3: length enable
+; commands are sized from 1-4 bytes containing a control byte and some parameter bytes
 ;
-; <command> [duration] [delay] [params...]
-
-; play note, duration, delay
-CMD_PLAY EQU 0
-; cut <tickDelay>
-CMD_CUT EQU 1
-
-CMD_RELEASE EQU 2
-
-; do nothing
-; nop
-CMD_NOP EQU 3
-
-; for commands >= 16, these change settings and do not stall
-
-; tbe_halt
-CMD_HALT EQU 16
-
-; tbe_call <label>
-CMD_CALL EQU 17
-
-; tbe_jump <label>
-CMD_JUMP EQU 18
-
-; tbe_ret
-CMD_RET EQU 19
-
-; tbe_tempo <tempo>
-CMD_TEMPO EQU 17
-
-; set envelope
-; set_envelope <envelope>
-
-; set timbre
-; set_timbre <timbre>
-
-; set panning
-; set_panning <panning>
-
-; arpeggio
-; arpeggio <param>
-
+; The control byte has this structure:
+; +----+----+----+----------------------+
+; | P1 | P2 | P3 | Command index        |
+; +----+----+----+----------------------+
+; 8    7    6    5                      0
 ;
+; P1 - parameter 1 enable (if set, a parameter byte follows)
+; P2 - parameter 2 enable ^
+; P3 - parameter 3 enable ^
+;
+; parameters are stored in order from 1 to 3. Any parameter not enabled is set to 0
+; by using default parameter values, we can omit parameters and save space
+;
+; examples:
+; tbe_play C-2, 0, 0
+;  => DB $00        ; 1 byte! C-2 index is actually 0 so we don't need to include it
+; tbe_play C-3, 0, 0
+;  => DB $80, $0C
+;
+
+; Command indices
+CMD_PLAY                EQU 0
+CMD_CUT                 EQU 1
+CMD_RELEASE             EQU 2
+CMD_NOP                 EQU 3
+CMD_HALT                EQU 4
+CMD_CALL                EQU 5
+CMD_JUMP                EQU 6
+CMD_RET                 EQU 7
+CMD_TEMPO               EQU 8
+CMD_SFX                 EQU 9
+CMD_SFX_STOP            EQU 10
+CMD_ARP                 EQU 11
+CMD_PITCH_SLIDE_UP      EQU 12
+CMD_PITCH_SLIDE_DOWN    EQU 13
+CMD_NOTE_SLIDE_UP       EQU 14
+CMD_NOTE_SLIDE_DOWN     EQU 15
+CMD_TUNE                EQU 16
+CMD_PORTAMENTO          EQU 17
+CMD_VIBRATO             EQU 18
+CMD_SET_ENVELOPE        EQU 19
+CMD_SET_TIMBRE          EQU 20
+CMD_SET_PANNING         EQU 21
+CMD_INSTRUMENT_SET      EQU 22
+CMD_INSTRUMENT_OFF      EQU 23
+CMD_DELAYED_CUT         EQU 24
+
+; 25/32 commands used
+
 
 ; \1 - command index
-; \2 - duration
-; \3 - delay
-lengthCmd: MACRO
-    STATIC_ASSERT \2 >= 1, "invalid duration", FAIL
-    DB ((\2 == 1) << 3) | ((\3 != 0) << 2) | \1
-    IF \2 > 1
+; \2 - parameter 1
+; \3 - parameter 2
+; \4 - parameter 3
+_makeCmd: MACRO
+    DB ((\2 != 0) << 7) | ((\3 != 0) << 6) | ((\4 != 0) << 5) | (\1)
+    IF \2 != 0
         DB \2
     ENDC
     IF \3 != 0
         DB \3
     ENDC
+    IF \4 != 0
+        DB \4
+    ENDC
 ENDM
 
-; ex: notePlay C-4, 1, 0
-notePlay: MACRO
+; -----------------------------------------------------------------------------
+; Command Macros
+; useful for hand-writing music data
+
+
+; ex: tbe_play C-4, 1, 0
+; plays C-4 immediately and stalls for 1 row (plays for 2 rows)
+; tbe_play <note> <duration> <delay>
+tbe_play: MACRO
     STATIC_ASSERT \1 <= B_8, "invalid note index", FAIL
-    lengthCmd CMD_PLAY, \2, \3
-    DB \1
+    _makeCmd CMD_PLAY, \1, \2, \3
 ENDM
 
-noteCut: MACRO
-    lengthCmd CMD_CUT, \1, \2
+; tbe_cut <duration> <delay>
+tbe_cut: MACRO
+    _makeCmd CMD_CUT, \1, \2, 0
 ENDM
 
-noteNop: MACRO
-    lengthCmd CMD_NOP, \1, 0
+; tbe_release <duration> <delay>
+tbe_release: MACRO
+    _makeCmd CMD_RELEASE, \1, \2, 0
 ENDM
 
-noteRelease: MACRO
-    lengthCmd CMD_RELEASE, \1, \2
+; tbe_nop <duration>
+tbe_nop: MACRO
+    _makeCmd CMD_NOP, \1, 0, 0
+ENDM
+
+; tbe_halt
+tbe_halt: MACRO
+    _makeCmd CMD_HALT, 0, 0, 0
+ENDM
+
+; tbe_call <addr/label>
+tbe_call: MACRO
+    ; 1 parameter as a word, placed into 2 parameters
+    ;_makeCmd CMD_CALL, LOW(\1), HIGH(\1), 0
+    DB $C0 | CMD_CALL
+    DW \1
+ENDM
+
+; tbe_jump <addr/label>
+tbe_jump: MACRO
+    ;_makeCmd CMD_JUMP, LOW(\1), HIGH(\1), 0
+    DB $C0 | CMD_JUMP
+    DW \1
+ENDM
+
+; tbe_ret
+tbe_ret: MACRO
+    _makeCmd CMD_RET, 0, 0, 0
+ENDM
+
+tbe_tempo: MACRO
+    STATIC_ASSERT \1 >= 8 && \1 < 248, "invalid speed", FAIL
+    _makeCmd CMD_TEMPO, \1, 0, 0
+ENDM
+
+tbe_sfx: MACRO
+    _makeCmd CMD_SFX, \1, 0, 0
+ENDM
+
+tbe_sfxStop: MACRO
+    _makeCmd CMD_SFX_STOP, 0, 0, 0
+ENDM
+
+tbe_arp: MACRO
+    _makeCmd CMD_ARP, \1, 0, 0
+ENDM
+
+tbe_pitchSlideUp: MACRO
+    _makeCmd CMD_PITCH_SLIDE_UP, \1, 0, 0
+ENDM
+
+tbe_pitchSlideDown: MACRO
+    _makeCmd CMD_PITCH_SLIDE_DOWN, \1, 0, 0
+ENDM
+
+tbe_portamento: MACRO
+    _makeCmd CMD_PORTAMENTO, \1, 0, 0
+ENDM
+
+tbe_vibrato: MACRO
+    _makeCmd CMD_VIBRATO, \1, 0, 0
+ENDM
+
+tbe_setEnvelope: MACRO
+    _makeCmd CMD_SET_ENVELOPE, \1, 0, 0
+ENDM
+
+tbe_setTimbre: MACRO
+    _makeCmd CMD_SET_TIMBRE, \1, 0, 0
+ENDM
+
+tbe_setPanning: MACRO
+    _makeCmd CMD_SET_PANNING, \1, 0, 0
+ENDM
+
+tbe_instrumentSet: MACRO
+    _makeCmd CMD_INSTRUMENT_SET, \1, 0, 0
+ENDM
+
+tbe_instrumentOff: MACRO
+    _makeCmd CMD_INSTRUMENT_OFF, 0, 0, 0
+ENDM
+
+tbe_delayedCut: MACRO
+    _makeCmd CMD_DELAYED_CUT, \1, 0, 0
 ENDM
 
 
-ENDC
+ENDC ; IF !DEF(TBENGINE_INC)
