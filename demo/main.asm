@@ -107,8 +107,7 @@ Start:
     ld de, $706
     ; vibrato index
     ld b, $0
-    ; extent
-    ld c, $4
+    
 
 .gameloop
     call    WaitVBlank
@@ -117,6 +116,7 @@ Start:
     ; this is what effect 441 will sound like
 
     ; get the current vibrato value
+    ld      hl, VibratoTable + (16 * $4) ; extent is 4
     call    lookupVibrato
     
     ld      l, a            ; set hl to register a and sign-extend
