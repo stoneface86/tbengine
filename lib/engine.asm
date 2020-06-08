@@ -1,8 +1,4 @@
-; 2's complement negation
-neg: MACRO
-    cpl
-    inc     a
-ENDM
+
 
 IF DEF(TBE_ROM0)
 SECTION "tbengine", ROM0

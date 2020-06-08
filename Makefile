@@ -54,9 +54,12 @@ DEFINES := -D TBE_ROM0
 -include user.mk
 
 LIB_SRC := lib/info.asm \
+           lib/macros.asm \
            lib/engine.asm \
 		   lib/commands.asm \
+		   lib/frequency.asm \
            lib/tables.asm \
+		   lib/utils.asm \
 		   lib/wram.asm
 
 #
