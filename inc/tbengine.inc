@@ -87,74 +87,89 @@ A_8 EQU 81
 A#8 EQU 82
 B_8 EQU 83
 
-; commands
+; special notes
+NOTE_REST EQU B_8 + 1           ; "no-op", this occurs when the note column is empty
+NOTE_CUT  EQU B_8 + 2           ; turns sound output for the channel off
+NOTE_RELEASE EQU B_8 + 3        ; TBD
 
-; commands are sized from 1-4 bytes containing a control byte and some parameter bytes
+; the last legal note index
+NOTE_LAST EQU NOTE_RELEASE
+
+; track data format
+; rows in a track are made up of a note byte with command bytes and an optional duration byte
+; [commands...] [duration] <note>
 ;
-; The control byte has this structure:
-; +----+----+----+----------------------+
-; | P1 | P2 | P3 | Command index        |
-; +----+----+----+----------------------+
-; 8    7    6    5                      0
+; duration is the number of rows+1 the note is played for, if duration is left out it is defaulted to 0
+; Bit 7 - command enable byte
+
+; if bit 7 is reset:
+;  bits 0-6: note index
+; else:
+;  bits 0-4: command index
+;  bit  5: (P) parameter enable
+;  bit  6: duration override
 ;
-; P1 - parameter 1 enable (if set, a parameter byte follows)
-; P2 - parameter 2 enable ^
-; P3 - parameter 3 enable ^
 ;
-; parameters are stored in order from 1 to 3. Any parameter not enabled is set to 0
-; by using default parameter values, we can omit parameters and save space
+; note byte:
 ;
-; examples:
-; tbe_play C-2, 0, 0
-;  => DB $00        ; 1 byte! C-2 index is actually 0 so we don't need to include it
-; tbe_play C-3, 0, 0
-;  => DB $80, $0C
+; +---+-----------------------+
+; | 0 | note index            |
+; +---+-----------------------+
+; 8   7                       0
+
+; command byte:
+
+; +---+---+---+---------------+
+; | 1 | 0 | P | command index |
+; +---+---+---+---------------+
+; 8   7   6   5               0
 ;
+; duration byte:
+
+; +---+---+--------------------+
+; | 1 | 1 | duration           |
+; +---+---+--------------------+
+; 8   7   6                    0
+
+; duration: 0-63
+
+
+; $00-$7F: note byte
+; $80-$BF: command byte [parameter]
+; $C0-$FF: duration byte (sets the default duration for notes)
 
 ; Command indices
-CMD_PLAY                EQU 0
-CMD_CUT                 EQU 1
-CMD_RELEASE             EQU 2
-CMD_NOP                 EQU 3
-CMD_HALT                EQU 4
-CMD_CALL                EQU 5
-CMD_JUMP                EQU 6
-CMD_RET                 EQU 7
-CMD_TEMPO               EQU 8
-CMD_SFX                 EQU 9
-CMD_SFX_STOP            EQU 10
-CMD_ARP                 EQU 11
-CMD_PITCH_SLIDE_UP      EQU 12
-CMD_PITCH_SLIDE_DOWN    EQU 13
-CMD_NOTE_SLIDE_UP       EQU 14
-CMD_NOTE_SLIDE_DOWN     EQU 15
-CMD_TUNE                EQU 16
-CMD_PORTAMENTO          EQU 17
-CMD_VIBRATO             EQU 18
-CMD_SET_ENVELOPE        EQU 19
-CMD_SET_TIMBRE          EQU 20
-CMD_SET_PANNING         EQU 21
-CMD_INSTRUMENT_SET      EQU 22
-CMD_INSTRUMENT_OFF      EQU 23
-CMD_DELAYED_CUT         EQU 24
+CMD_GOTO                EQU 0
+CMD_SKIP                EQU 1
+CMD_HALT                EQU 2
+CMD_TEMPO               EQU 3
+CMD_SFX                 EQU 4
+CMD_SFX_STOP            EQU 5
+CMD_ARP                 EQU 6
+CMD_PITCH_SLIDE_UP      EQU 7
+CMD_PITCH_SLIDE_DOWN    EQU 8
+CMD_NOTE_SLIDE_UP       EQU 9
+CMD_NOTE_SLIDE_DOWN     EQU 10
+CMD_TUNE                EQU 11
+CMD_PORTAMENTO          EQU 12
+CMD_VIBRATO             EQU 13
+CMD_SET_ENVELOPE        EQU 14
+CMD_SET_TIMBRE          EQU 15
+CMD_SET_PANNING         EQU 16
+CMD_INSTRUMENT_SET      EQU 17
+CMD_INSTRUMENT_OFF      EQU 18
+CMD_DELAYED_CUT         EQU 19
+CMD_DURATION_SET        EQU 20
 
-; 25/32 commands used
+; 20/32 commands used
 
 
 ; \1 - command index
-; \2 - parameter 1
-; \3 - parameter 2
-; \4 - parameter 3
+; \2 - parameter
 _makeCmd: MACRO
-    DB ((\2 != 0) << 7) | ((\3 != 0) << 6) | ((\4 != 0) << 5) | (\1)
+    DB $80 | ((\2 != 0) << 5) | (\1)
     IF \2 != 0
         DB \2
-    ENDC
-    IF \3 != 0
-        DB \3
-    ENDC
-    IF \4 != 0
-        DB \4
     ENDC
 ENDM
 
@@ -162,110 +177,97 @@ ENDM
 ; Command Macros
 ; useful for hand-writing music data
 
-
-; ex: tbe_play C-4, 1, 0
-; plays C-4 immediately and stalls for 1 row (plays for 2 rows)
-; tbe_play <note> <duration> <delay>
-tbe_play: MACRO
-    STATIC_ASSERT FATAL, \1 <= B_8, "invalid note index"
-    _makeCmd CMD_PLAY, \1, \2, \3
+tbe_note: MACRO
+    STATIC_ASSERT FATAL, \1 <= NOTE_LAST, "illegal note index"
+    DB \1
 ENDM
 
-; tbe_cut <duration> <delay>
-tbe_cut: MACRO
-    _makeCmd CMD_CUT, \1, \2, 0
+tbe_duration: MACRO
+    STATIC_ASSERT FATAL, (\1) >= 1 && (\1) <= 256, "duration must be between 1 and 256 rows"
+    IF (\1) <= 64
+        ; use shortcut to save 1 byte
+        DB $C0 | (\1 - 1)
+    ELSE
+        ; duration is larger than 64 so we need to use the command instead
+        _makeCmd CMD_DURATION_SET, (\1 - 1)
+    ENDC
 ENDM
 
-; tbe_release <duration> <delay>
-tbe_release: MACRO
-    _makeCmd CMD_RELEASE, \1, \2, 0
+; tbe_goto <orderNo>
+tbe_goto: MACRO
+    _makeCmd CMD_GOTO, \1
 ENDM
 
-; tbe_nop <duration>
-tbe_nop: MACRO
-    _makeCmd CMD_NOP, \1, 0, 0
+; tbe_skip <rowNo>
+tbe_skip: MACRO
+    _makeCmd CMD_SKIP, \1
 ENDM
 
 ; tbe_halt
 tbe_halt: MACRO
-    _makeCmd CMD_HALT, 0, 0, 0
+    _makeCmd CMD_HALT, 0
 ENDM
 
-; tbe_call <addr/label>
-tbe_call: MACRO
-    ; 1 parameter as a word, placed into 2 parameters
-    ;_makeCmd CMD_CALL, LOW(\1), HIGH(\1), 0
-    DB $C0 | CMD_CALL
-    DW \1
-ENDM
-
-; tbe_jump <addr/label>
-tbe_jump: MACRO
-    ;_makeCmd CMD_JUMP, LOW(\1), HIGH(\1), 0
-    DB $C0 | CMD_JUMP
-    DW \1
-ENDM
-
-; tbe_ret
-tbe_ret: MACRO
-    _makeCmd CMD_RET, 0, 0, 0
-ENDM
-
+; tbe_tempo <speed>
 tbe_tempo: MACRO
     STATIC_ASSERT FATAL, \1 >= 8 && \1 < 248, "invalid speed"
-    _makeCmd CMD_TEMPO, \1, 0, 0
+    _makeCmd CMD_TEMPO, \1
 ENDM
 
+; tbe_sfx <sfxId>
 tbe_sfx: MACRO
-    _makeCmd CMD_SFX, \1, 0, 0
+    _makeCmd CMD_SFX, \1
 ENDM
 
+; tbe_sfxStop
 tbe_sfxStop: MACRO
-    _makeCmd CMD_SFX_STOP, 0, 0, 0
+    _makeCmd CMD_SFX_STOP, 0
 ENDM
 
+; tbe_arp <param>
 tbe_arp: MACRO
-    _makeCmd CMD_ARP, \1, 0, 0
+    _makeCmd CMD_ARP, \1
 ENDM
 
+; tbe_pitchSlideUp <param>
 tbe_pitchSlideUp: MACRO
-    _makeCmd CMD_PITCH_SLIDE_UP, \1, 0, 0
+    _makeCmd CMD_PITCH_SLIDE_UP, \1
 ENDM
 
 tbe_pitchSlideDown: MACRO
-    _makeCmd CMD_PITCH_SLIDE_DOWN, \1, 0, 0
+    _makeCmd CMD_PITCH_SLIDE_DOWN, \1
 ENDM
 
 tbe_portamento: MACRO
-    _makeCmd CMD_PORTAMENTO, \1, 0, 0
+    _makeCmd CMD_PORTAMENTO, \1
 ENDM
 
 tbe_vibrato: MACRO
-    _makeCmd CMD_VIBRATO, \1, 0, 0
+    _makeCmd CMD_VIBRATO, \1
 ENDM
 
 tbe_setEnvelope: MACRO
-    _makeCmd CMD_SET_ENVELOPE, \1, 0, 0
+    _makeCmd CMD_SET_ENVELOPE, \1
 ENDM
 
 tbe_setTimbre: MACRO
-    _makeCmd CMD_SET_TIMBRE, \1, 0, 0
+    _makeCmd CMD_SET_TIMBRE, \1
 ENDM
 
 tbe_setPanning: MACRO
-    _makeCmd CMD_SET_PANNING, \1, 0, 0
+    _makeCmd CMD_SET_PANNING, \1
 ENDM
 
 tbe_instrumentSet: MACRO
-    _makeCmd CMD_INSTRUMENT_SET, \1, 0, 0
+    _makeCmd CMD_INSTRUMENT_SET, \1
 ENDM
 
 tbe_instrumentOff: MACRO
-    _makeCmd CMD_INSTRUMENT_OFF, 0, 0, 0
+    _makeCmd CMD_INSTRUMENT_OFF, 0
 ENDM
 
 tbe_delayedCut: MACRO
-    _makeCmd CMD_DELAYED_CUT, \1, 0, 0
+    _makeCmd CMD_DELAYED_CUT, \1
 ENDM
 
 
