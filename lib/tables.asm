@@ -6,16 +6,10 @@
 ; Command function pointer table
 ;
 CommandTable:
-    ; duration commands
-    DW cmdFnNote
-    DW cmdFnCut
-    DW cmdFnRelease
-    DW cmdFnNop
     ; effect commands
+    DW cmdFnGoto
+    DW cmdFnSkip
     DW cmdFnHalt
-    DW cmdFnCall
-    DW cmdFnJump
-    DW cmdFnRet
     DW cmdFnTempo
     DW cmdFnSfx
     DW cmdFnSfxStop
@@ -33,6 +27,8 @@ CommandTable:
     DW cmdFnInstrumentSet
     DW cmdFnInstrumentOff
     DW cmdFnDelayedCut
+    DW cmdFnDelayedNote
+    DW cmdFnDurationSet
 
 ; Note frequency table
 ; Octave range for CH1/CH2 is 2-8, CH3 is one lower (unless the waveform has 2 periods)

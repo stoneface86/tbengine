@@ -159,9 +159,10 @@ CMD_SET_PANNING         EQU 16
 CMD_INSTRUMENT_SET      EQU 17
 CMD_INSTRUMENT_OFF      EQU 18
 CMD_DELAYED_CUT         EQU 19
-CMD_DURATION_SET        EQU 20
+CMD_DELAYED_NOTE        EQU 20
+CMD_DURATION_SET        EQU 21
 
-; 20/32 commands used
+; 22/32 commands used
 
 
 ; \1 - command index
