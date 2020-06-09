@@ -174,5 +174,72 @@ fc_setNote:
     ret
 
 fc_setVibrato:
+    push    de
+    ld      d, h
+    ld      e, l
+
+    ld      b, a
+    and     a, $F0                      ; check if speed is zero
+    jr      nz, .vibratoActive
+    res     FC_FLAG_VIBRATO, [hl]       ; reset vibrato flag
+    seeks   FreqControl_vibIndex        ; reset index
+    ld      [hl], 0
+    jr      .exit
+.vibratoActive:
+    set     FC_FLAG_VIBRATO, [hl]       ; set vibrato flag
+    swap    a                           ; move speed argument to first nibble
+    seeks   FreqControl_vibSpeed
+    ld      [hl+], a                    ; store the speed, point hl to the table
+    push    hl
+    ld      a, b                        ; restore parameter
+    swap    a                           ; multiply by 16
+    and     a, $F0
+    ld      hl, VibratoTable
+    ld      b, 0
+    ld      c, a
+    add     hl, bc
+    ld      b, h
+    ld      a, l
+    pop     hl
+    ld      [hl+], a
+    ld      [hl], b
+    
+.exit:
+    pop     de
     ret
 
+fc_step:
+    push    de
+    ld      d, h
+    ld      e, l
+    
+    bit     FC_FLAG_VIBRATO, [hl]
+    jr      z, .exit
+    seeks   FreqControl_vibIndex
+    ld      b, [hl]
+    seeks   FreqControl_vibTable
+    ld      a, [hl+]
+    ld      c, [hl]
+    ld      h, c
+    ld      l, a
+    call    lookupVibrato
+    seeks   FreqControl_vibCounter
+    ld      [hl], a
+    ld      a, b
+    seeks   FreqControl_vibSpeed
+    ld      b, [hl]
+    add     a, b
+    and     a, $3F
+    seeks   FreqControl_vibIndex
+    ld      [hl], a
+
+.exit:
+    ld      h, d
+    ld      l, e
+    pop     de
+    ret
+
+IF DEF(TBE_EXPORT_FC)
+EXPORT fc_frequency, fc_reset, fc_step, fc_setVibrato
+EXPORT FreqControl1, FreqControl2, FreqControl3
+ENDC

@@ -103,11 +103,18 @@ Start:
     ld a, $80
     ld [rNR14], a   ; start playing sound
 
-    ; frequency, C-4
-    ld de, $706
-    ; vibrato index
-    ld b, $0
+    ld hl, FreqControl1
+    call fc_reset
     
+    ld hl, FreqControl1
+    ld a, $47
+    call fc_setVibrato
+
+    ld hl, FreqControl1 + 4 ; hack, explicitly set frequency
+    ld a, $7
+    ld [hl], a
+
+    ld      hl, FreqControl1    
 
 .gameloop
     call    WaitVBlank
@@ -115,27 +122,13 @@ Start:
     ; vibrato example, (demo purposes only, will be moved to library)
     ; this is what effect 441 will sound like
 
-    ; get the current vibrato value
-    ld      hl, VibratoTable + (16 * $4) ; extent is 4
-    call    lookupVibrato
-    
-    ld      l, a            ; set hl to register a and sign-extend
-    add     a
-    sbc     a
-    ld      h, a
-    add     hl, de          ; hl is our base frequency + vibrato value
+    call    fc_step
 
-    ld      a, l            ; set the new frequency
+    call    fc_frequency
+    ld      a, c            ; set the new frequency
     ld      [rNR13], a
-    ld      a, h
-    and     a, $7
-    ld      [rNR14], a
-
-    ; advance vibrato index
     ld      a, b
-    add     a, $1           ; add the speed to advance the index
-    and     a, $3F          ; keep the index within the period
-    ld      b, a
+    ld      [rNR14], a
 
     jr      .gameloop
 

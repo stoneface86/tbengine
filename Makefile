@@ -134,6 +134,7 @@ $(ROM_GB): $(OBJ_FILES) $(MAKEFILE_LIST)
 	@$(RGBLINK) $(LINK_FLAGS) -o $@ $(OBJ_FILES)
 	@echo "FIX      $@"
 	@$(RGBFIX) $(FIX_FLAGS) $@
+$(ROM_GB): DEFINES += -D TBE_EXPORT_FC
 
 $(OBJ_FILES): | $(OBJ_DIRS)
 
