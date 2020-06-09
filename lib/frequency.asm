@@ -1,7 +1,27 @@
+; ----------------------------------------------------------------------------
+; Frequency
 
 ; frequency control structure
+; A frequency control handles frequency effects as well as calculation
 
-FC_FLAG_VIBRATO EQU 5
+                        RSRESET
+FreqControl_flags       RB 1        ; flags
+FreqControl_note        RB 1        ; current note
+FreqControl_tune        RB 1        ; pitch offset (signed)
+FreqControl_freq        RW 3        ; frequency buffer/chord
+FreqControl_slideSpeed  RB 1        ; speed of a pitch/note slide or portamento (pitch units/frame)
+FreqControl_slideTarget RW 1        ; target frequency of a slide
+FreqControl_slideNote   RB 1        ; note to slide to
+FreqControl_arpParam    RB 1        ; semitone offsets for the arpeggio "chord"
+FreqControl_arpIndex    RB 1        ; index in the frequency buffer to use as base
+FreqControl_vibCounter  RB 1        ; current value of the vibrato
+FreqControl_vibIndex    RB 1        ; current index/angle of the vibrato waveform
+FreqControl_vibSpeed    RB 1        ; speed of the vibrato
+FreqControl_vibTable    RB 2        ; pointer to the current vibrato table (extent)
+FreqControl_SIZEOF      RB 0
+
+FC_FLAG_NOTE_SET    EQU 0   ; bit 0: set if a new note was set
+FC_FLAG_VIBRATO     EQU 5   ; bit 5: set if vibrato is enabled
 
 ;
 ; Clamps a given frequency to 0-2047
@@ -76,65 +96,90 @@ lookupVibrato::
     pop     hl
     ret
 
-
 ;
-; template macro
-; \1 - channel id (1, 2 or 3)
-;
-fc_generate_code: MACRO
-
-fc\1_reset:
-    ld      hl, fc\1_flags
-    ld      bc, fc2_flags - fc1_flags   ; jank
-    xor     a, a
-    call    memset
-    ret
-
-
-;
-; Get the current frequency for the channel
+; Reset the FreqControl struct to the default state
 ;
 ; Input:
-;  * N/A
+;  * hl : pointer to FreqControl struct
+; Output:
+;  * n/a
+;
+fc_reset:
+    push    bc
+    ld      bc, FreqControl_SIZEOF
+    xor     a, a
+    call    memset                  ; reset results in all fields set to 0
+    pop     bc
+    ret
+
+;
+; Get the current frequency for the given frequency control
+;
+; Input:
+;  * hl : pointer to FreqControl struct
 ; Output:
 ;  * bc = current frequency
 ;
-fc\1_frequency:
-    ld      a, [fc\1_arpIndex]      ; get the arpeggio index to offset the freq buffer
+fc_frequency:
+    push    de                      ; save de
+    ld      d, h                    ; this-in-de (put pointer to FreqControl in de)
+    ld      e, l
+
+
+    ld      hl, FreqControl_arpIndex
+    add     hl, de
+    ld      a, [hl]                 ; get the arpeggio index to offset the freq buffer
     sla     a                       ; double it (frequencies are words)
     ld      c, a                    ; bc = arpIndex * 2
     ld      b, 0
 
-    ld      hl, fc\1_freq
+    ld      hl, FreqControl_freq
+    add     hl, de
     add     hl, bc                  ; offset freq pointer by the arpeggio index
     ld      a, [hl+]                ; bc = freq
     ld      c, a
     ld      b, [hl]
-    ld      hl, fc\1_tune           ; get the pitch offset
+    ld      hl, FreqControl_tune    ; get the pitch offset
+    add     hl, de
     ld      a, [hl]                 ; d = tune
     ld      h, b                    ; hl = bc
     ld      l, c
     call    addsw                   ; hl += a (frequency is now offset by tune)
-    
-
-    ld      a, [fc\1_flags]         ; check flags for vibrato
-    bit     FC_FLAG_VIBRATO, a
-    jp      z, .skipVibrato         ; do not add vibCounter if bit is reset
-    ld      a, [fc\1_vibCounter]    ; a = vibCounter
-    call    addsw                   ; hl += a (frequency is now offset by vibCounter)
-.skipVibrato:
-
     ld      b, h                    ; bc = hl
     ld      c, l
+
+    ;ld      hl, FreqControl_flags   ; check flags for vibrato
+    ;add     hl, de
+    ; flags is the start of struct so we don't need to offset de
+    ld      h, d
+    ld      l, e
+    ld      a, [hl]
+    bit     FC_FLAG_VIBRATO, a
+    jp      z, .skipVibrato         ; do not add vibCounter if bit is reset
+    ld      hl, FreqControl_vibCounter
+    add     hl, de
+    ld      a, [hl]                 ; a = vibCounter
+    ld      h, b
+    ld      l, c
+    call    addsw                   ; hl += a (frequency is now offset by vibCounter)
+    ld      b, h                    ; bc = hl
+    ld      c, l
+.skipVibrato:
+
     call    clampFrequency          ; clamp if necessary
 
+    ; restore hl
+    ld      h, d
+    ld      l, e
+    pop     de
     ret
 
+fc_setNote:
+    set     FC_FLAG_NOTE_SET, [hl]  ; update flags
+    inc     hl                      ; hl points to note
+    ld      [hl], a                 ; set note
+    ret
 
-ENDM
-
-
-    fc_generate_code 1
-    fc_generate_code 2
-    fc_generate_code 3
+fc_setVibrato:
+    ret
 
