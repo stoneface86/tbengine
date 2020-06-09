@@ -28,4 +28,27 @@ _addsw: MACRO
     add     hl, \1
 ENDM
 
-
+;
+; Seek Struct (SeekS): Seek to a field in a struct pointer using the "this-in-de" pattern
+; \1: offset to seek to
+;
+; depending on the offset, the code emitted will have different cycle counts
+;
+; offset   bytes  cycles   description
+;   0        2       2      hl = de
+;   1        3       4      hl = de, increment hl
+;  >1        4       5      hl = \1, hl += de
+;
+seeks: MACRO
+    IF \1 < 2
+        ; 2 bytes, 2 cycles
+        ld      h, d
+        ld      l, e
+        IF \1 == 1
+            inc     hl
+        ENDC
+    ELSE
+        ld      hl, \1
+        add     hl, de
+    ENDC
+ENDM

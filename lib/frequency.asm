@@ -126,21 +126,18 @@ fc_frequency:
     ld      e, l
 
 
-    ld      hl, FreqControl_arpIndex
-    add     hl, de
+    seeks   FreqControl_arpIndex
     ld      a, [hl]                 ; get the arpeggio index to offset the freq buffer
     sla     a                       ; double it (frequencies are words)
     ld      c, a                    ; bc = arpIndex * 2
     ld      b, 0
 
-    ld      hl, FreqControl_freq
-    add     hl, de
+    seeks   FreqControl_freq
     add     hl, bc                  ; offset freq pointer by the arpeggio index
     ld      a, [hl+]                ; bc = freq
     ld      c, a
     ld      b, [hl]
-    ld      hl, FreqControl_tune    ; get the pitch offset
-    add     hl, de
+    seeks   FreqControl_tune        ; get the pitch offset
     ld      a, [hl]                 ; d = tune
     ld      h, b                    ; hl = bc
     ld      l, c
@@ -148,11 +145,7 @@ fc_frequency:
     ld      b, h                    ; bc = hl
     ld      c, l
 
-    ;ld      hl, FreqControl_flags   ; check flags for vibrato
-    ;add     hl, de
-    ; flags is the start of struct so we don't need to offset de
-    ld      h, d
-    ld      l, e
+    seeks   FreqControl_flags
     ld      a, [hl]
     bit     FC_FLAG_VIBRATO, a
     jp      z, .skipVibrato         ; do not add vibCounter if bit is reset
