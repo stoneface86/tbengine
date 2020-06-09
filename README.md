@@ -32,6 +32,11 @@ The only dependency for this library is hardware.inc, so make sure it is in your
 
 You can load the library to either ROM0 or ROMX. Default is ROMX. To load to ROM0, define TBE_ROM0 when assembling.
 
+# Contributing
+
+Any contributions are welcomed at this point in time. Feel free to contact me on discord,
+my tag is stoneface#7646.
+
 # Versioning
 
 This project uses Semantic Versioning v2.0.0
