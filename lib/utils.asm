@@ -17,6 +17,22 @@ memset:
     ret
 
 ;
+; Copy data from a source address to a destination address
+; hl = source address
+; de = destination address
+; bc = number of bytes to copy
+;
+memcpy:
+    ld      a, [hl+]
+    ld      [de], a
+    inc     de
+    dec     bc
+    ld      a, b
+    or      c
+    jr      nz, memcpy
+    ret
+
+;
 ; Adds a signed byte to hl, the byte operand is placed into register bc and sign-extended
 ;
 ; Input

@@ -4,9 +4,10 @@ INCLUDE "tbengine.inc"
 
 SECTION "sample song data", ROM0
 
-sampleSong:
+sampleSong::
     DB $30              ; speed (6.0 frames per row, 150 BPM)
-    DB $1               ; number of frames
+    DB $1 - 1           ; order size
+    DB 64 - 1           ; pattern size
     DW sampleSong_order
 
 sampleSong_order:

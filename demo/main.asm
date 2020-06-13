@@ -89,46 +89,51 @@ Start:
     ; enable interrupts
 	ei
 
-    ld a, $80
-    ld [rNR52], a   ; sound on
-    ld a, $11
-    ld [rNR51], a   ; enable both terminals for CH1
-    ld a, $FF
-    ld [rNR50], a   ; both terminals on at max volume
+    ; ld a, $80
+    ; ld [rNR52], a   ; sound on
+    ; ld a, $11
+    ; ld [rNR51], a   ; enable both terminals for CH1
+    ; ld a, $FF
+    ; ld [rNR50], a   ; both terminals on at max volume
 
-    ld a, $80
-    ld [rNR11], a   ; Duty = 02 (50%)
-    ld a, $F0
-    ld [rNR12], a   ; envelope = constant volume F
-    ld a, $80
-    ld [rNR14], a   ; start playing sound
+    ; ld a, $80
+    ; ld [rNR11], a   ; Duty = 02 (50%)
+    ; ld a, $F0
+    ; ld [rNR12], a   ; envelope = constant volume F
+    ; ld a, $80
+    ; ld [rNR14], a   ; start playing sound
 
-    ld hl, FreqControl1
-    call fc_reset
+    ; ld hl, FreqControl1
+    ; call fc_reset
     
-    ld hl, FreqControl1
-    ld a, $47
-    call fc_setVibrato
+    ; ld hl, FreqControl1
+    ; ld a, $47
+    ; call fc_setVibrato
 
-    ld hl, FreqControl1 + 4 ; hack, explicitly set frequency
-    ld a, $7
-    ld [hl], a
+    ; ld hl, FreqControl1 + 4 ; hack, explicitly set frequency
+    ; ld a, $7
+    ; ld [hl], a
 
-    ld      hl, FreqControl1    
+    ; ld      hl, FreqControl1
+    call    tbeInit
+    
+    ld      hl, sampleSong
+    call    tbePlaySong
 
 .gameloop
     call    WaitVBlank
 
     ; vibrato example, (demo purposes only, will be moved to library)
     ; this is what effect 441 will sound like
+    call    tbeUpdate
 
-    call    fc_step
+    ; call    fc_step
 
-    call    fc_frequency
-    ld      a, c            ; set the new frequency
-    ld      [rNR13], a
-    ld      a, b
-    ld      [rNR14], a
+    ; call    fc_frequency
+    ; ld      a, c            ; set the new frequency
+    ; ld      [rNR13], a
+    ; ld      a, b
+    ; ld      [rNR14], a
 
     jr      .gameloop
 
