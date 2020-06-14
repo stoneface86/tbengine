@@ -1,7 +1,7 @@
 ; -----------------------------------------------------------------------------
 ; WRAM variables
 
-SECTION "tbengine_wram", WRAM0, ALIGN[6]
+SECTION "tbengine_wram", WRAM0
 
 tbeWramBegin:
 wStatus:            DS 1
@@ -26,6 +26,15 @@ wRowCounter1:       DS 1
 wRowCounter2:       DS 1
 wRowCounter3:       DS 1
 wRowCounter4:       DS 1
+
+; persistent row durations (default is 0)
+wRowDuration1:      DS 1
+wRowDuration2:      DS 1
+wRowDuration3:      DS 1
+wRowDuration4:      DS 1
+
+; stack pointer when tbe_update is called
+wStack:      DS 2
 
 ; number of rows remaining in the pattern
 ; when this overflows, it's time to load the next pattern

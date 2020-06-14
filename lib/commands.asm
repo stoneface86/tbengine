@@ -23,8 +23,20 @@ cmdFnHalt:
     ld      a, [wStatus]            ; set the halted bit in status
     set     ENGINE_FLAGS_HALTED, a
     ld      [wStatus], a
-    add     sp, 2                   ; throw away return address
-    jp      tbe_update.exit         ; stop everything
+    
+    ; TODO: turn sound off
+
+    ; halting occurs immediately
+    ; go back to tbe_update using the saved sp
+    
+    ld      hl, wStack              ; load the saved sp
+    ld      a, [hl+]
+    ld      e, a
+    ld      a, [hl]
+    ld      h, a                    ; hl = sp
+    ld      l, e
+    ld      sp, hl                  ; update sp
+    jp      tbe_update.exit         ; go to end of tbe_update
 
 cmdFnTempo:
     ; parameter 1, a - new speed to set

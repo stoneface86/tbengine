@@ -9,6 +9,12 @@ ENDC
 UNIT_SPEED EQU %00001000    ; unit speed, 1.0 in Q5.3 format
 ENGINE_FLAGS_HALTED EQU 0
 
+ENGINE_CHFLAGS_ROWEN1 EQU 0 ; bit 0: row enable (if set)
+ENGINE_CHFLAGS_ROWEN2 EQU 1
+ENGINE_CHFLAGS_ROWEN3 EQU 2
+ENGINE_CHFLAGS_ROWEN4 EQU 3
+
+
 PATTERN_CMD_NONE EQU 0
 PATTERN_CMD_SKIP EQU 1
 PATTERN_CMD_JUMP EQU 2
@@ -86,9 +92,11 @@ tbe_update::
     bit     ENGINE_FLAGS_HALTED, a
     ret     nz
 
+    ld      [wStack], sp
+
     ld      a, [wTimer]                 ; check if timer is active (timer < UNIT_SPEED)
     and     a, %11111000
-    jr      nz, .timerNotActive
+    jp      nz, .timerNotActive
     ; timer is active (start of new row)
     ; apply the pattern effect (jump/skip)
     ; start the
@@ -167,6 +175,24 @@ tbe_update::
     ld      [wPatternCommand], a        ; reset pattern command variable
 .noCmd:
 
+    ld      a, [wChflags]
+    ld      c, a
+    ld      b, 0
+    bit     ENGINE_CHFLAGS_ROWEN1, c
+    call    nz, parseRow
+    inc     b
+    bit     ENGINE_CHFLAGS_ROWEN2, c
+    call    nz, parseRow
+    inc     b
+    bit     ENGINE_CHFLAGS_ROWEN3, c
+    call    nz, parseRow
+    inc     b
+    bit     ENGINE_CHFLAGS_ROWEN4, c
+    call    nz, parseRow
+    ld      a, c
+    and     a, $F0                      ; reset all rowen flags
+    ld      [wChflags], a
+
 .timerNotActive:
 
     ld      a, [wTimerPeriod]           ; b = timerPeriod
@@ -215,12 +241,104 @@ tbe_update::
 
 
 ;
+; Parse a row for the given channel
+;  b - channel id
+;
+parseRow:
+    ASSERT FATAL, LOW(wCh1Ptr) <= $F8, "low byte of wCh1Ptr must be <= $F8"
+    push    bc
+    push    de
+    ld      hl, wCh1Ptr         ; hl = channel pointer
+    ld      a, b                ; offset hl by channel id * 2
+    rla
+    add     a, l
+    ld      l, a
+    push    hl
+    ld      a, [hl+]
+    ld      d, a
+    ld      a, [hl]
+    ld      h, a
+    ld      l, d
+    
+
+.getbyte:
+    ld      a, [hl+]
+    bit     7, a                ; do we have a note?
+    jr      z, .notebyte        ; if reset we have a note byte (which ends the row)
+    bit     6, a                ; do we have a duration?
+    jr      z, .cmdbyte         ; if reset we have a command byte
+    ; duration byte
+    and     a, $3F              ; mask the duration
+    ld      c, a                ; c = duration
+    ld      de, wRowDuration1   ; de = row duration variable
+    ld      a, e
+    add     a, b                ; offset by channel id
+    ld      e, a
+    ld      a, c
+    ld      [de], a             ; update duration
+    jr      .getbyte            ; get next byte
+.cmdbyte
+    ld      d, a                ; c = command byte
+    bit     5, a                ; check for parameter
+    jr      z, .noparam
+    ld      a, [hl+]
+    jr      .paramdone
+.noparam:
+    xor     a
+.paramdone:
+    ld      c, a
+    ld      a, d
+
+    and     a, $1F              ; a = command index
+    rla
+    push    hl
+    ld      hl, CommandTable
+    ld      d, 0
+    ld      e, a
+    add     hl, de
+    ld      a, [hl+]
+    ld      e, a
+    ld      a, [hl]
+    ld      h, a
+    ld      l, e
+    
+    ld      a, c
+    call    _jp_hl
+    pop     hl
+
+    jr      .getbyte
+.notebyte:
+    ; TODO: do something with the note (a)
+    pop     de
+    ld      a, l
+    ld      [de], a
+    inc     e
+    ld      a, h
+    ld      [de], a
+    ld      de, wRowDuration1
+    ld      a, e
+    add     a, b
+    ld      e, a
+    ld      hl, wRowCounter1
+    ld      a, l
+    add     a, b
+    ld      l, a
+    ld      a, [de]
+    ld      [hl], a
+    pop     de
+    pop     bc
+    ret
+
+_jp_hl:
+    jp      hl
+
+;
 ; Adjusts row counters and channel pointers to start playing at a given row. The
 ; pattern is stepped through without applying effects so that we can start playing
 ; from a given row
 ; a - the row to start at
 ;
 fastforward:
-    ; TODO
+    ; TODO implement fast forward
     ret
 
