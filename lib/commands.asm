@@ -101,6 +101,3 @@ cmdFnDelayedCut:
 cmdFnDelayedNote:
     ret
 
-cmdFnDurationSet:
-    ret
-

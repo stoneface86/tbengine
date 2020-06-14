@@ -99,15 +99,18 @@ NOTE_LAST EQU NOTE_RELEASE
 ; rows in a track are made up of a note byte with command bytes and an optional duration byte
 ; [commands...] [duration] <note>
 ;
-; duration is the number of rows+1 the note is played for, if duration is left out it is defaulted to 0
+; duration is the number of rows+1 the note is played for. The last duration set is the one
+; used if a duration byte is not specified. The duration defaults to 1 row
 ; Bit 7 - command enable byte
 
 ; if bit 7 is reset:
 ;  bits 0-6: note index
 ; else:
-;  bits 0-4: command index
-;  bit  5: (P) parameter enable
-;  bit  6: duration override
+;  if bit 6 is reset:
+;   bits 0-4: command index
+;   bit  5: (P) parameter enable
+;  else:
+;   bits 0-5: duration setting
 ;
 ;
 ; note byte:
@@ -124,14 +127,17 @@ NOTE_LAST EQU NOTE_RELEASE
 ; +---+---+---+---------------+
 ; 8   7   6   5               0
 ;
+; P: parameter enable, if set a parameter byte follows this command
+; command index: index of the command to execute
+;
 ; duration byte:
-
+;
 ; +---+---+--------------------+
 ; | 1 | 1 | duration           |
 ; +---+---+--------------------+
 ; 8   7   6                    0
-
-; duration: 0-63
+;
+; duration: 0-63, sets the current duration setting
 
 
 ; $00-$7F: note byte
@@ -160,9 +166,8 @@ CMD_INSTRUMENT_SET      EQU 17
 CMD_INSTRUMENT_OFF      EQU 18
 CMD_DELAYED_CUT         EQU 19
 CMD_DELAYED_NOTE        EQU 20
-CMD_DURATION_SET        EQU 21
 
-; 22/32 commands used
+; 21/32 commands used
 
 
 ; \1 - command index
@@ -184,14 +189,8 @@ tbe_note: MACRO
 ENDM
 
 tbe_duration: MACRO
-    STATIC_ASSERT FATAL, (\1) >= 1 && (\1) <= 256, "duration must be between 1 and 256 rows"
-    IF (\1) <= 64
-        ; use shortcut to save 1 byte
-        DB $C0 | (\1 - 1)
-    ELSE
-        ; duration is larger than 64 so we need to use the command instead
-        _makeCmd CMD_DURATION_SET, (\1 - 1)
-    ENDC
+    STATIC_ASSERT FATAL, (\1) >= 1 && (\1) <= 64, "duration must be between 1 and 64 rows"
+    DB $C0 | (\1 - 1)
 ENDM
 
 ; tbe_goto <orderNo>
