@@ -7,4 +7,12 @@ INCLUDE "lib/commands.asm"
 INCLUDE "lib/frequency.asm"
 INCLUDE "lib/tables.asm"
 INCLUDE "lib/utils.asm"
+tbe_end:
+
 INCLUDE "lib/wram.asm"
+
+PRINTT "ROM usage: "
+PRINTI tbe_end - tbe_begin
+PRINTT "\nRAM usage: "
+PRINTI tbeWramEnd - tbeWramBegin
+PRINTT "\n"

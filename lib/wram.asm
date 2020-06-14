@@ -9,7 +9,9 @@ timer:          DS 1        ; current timer value
 timerPeriod:    DS 1        ; number of frames per row in Q5.3 format
 
 orderCount:     DS 1        ; number of patterns in order less 1
-orderPtr:       DS 2        ; pointer to pattern order table
+orderCounter:   DS 1
+orderTable:     DS 2        ; pointer to pattern order table
+currentOrder:   DS 2        ; pointer to the current order
 
 ; bits 0-3: new row for CH1-4
 chflags:        DS 1
