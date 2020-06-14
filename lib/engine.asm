@@ -20,21 +20,21 @@ SongHeader_order        RW 1
 SongHeader_SIZEOF       RB 0
 
 updateRowCounter: MACRO
-    ld      a, [rowCounter\1]           ; get the row counter for the channel
+    ld      a, [wRowCounter\1]          ; get the row counter for the channel
     or      a                           ; set zero flag
     jr      nz, .decrementRowCounter\1
-    ld      a, [chflags]                ; get the channel flags
+    ld      a, [wChflags]               ; get the channel flags
     set     \1 - 1, a                   ; set new row for the channel
-    ld      [chflags], a                ; store it back
+    ld      [wChflags], a               ; store it back
     jr      .endRowCounter\1
 .decrementRowCounter\1:
     dec     a
-    ld      [rowCounter\1], a           ; store the counter
+    ld      [wRowCounter\1], a          ; store the counter
 .endRowCounter\1:
 ENDM
 
 tbe_begin:
-tbeInit::
+tbe_init::
     push    bc
     push    hl
 
@@ -42,18 +42,6 @@ tbeInit::
     ld      hl, tbeWramBegin
     xor     a
     call    memset
-
-    ;xor     a
-    ;ld      [status], a
-    ;ld      [timer], a
-    ; ld      a, $30
-    ; ld      [timerPeriod], a
-    ; ld      a, 63
-    ; ld      [patternSize], a
-    ; ld      [patternCounter], a
-
-    ; ld      a, $0F
-    ; ld      [chflags], a
 
     pop     hl
     pop     bc
@@ -63,136 +51,136 @@ tbeInit::
 ;
 ; Prepares the engine to play a song from the given pointer
 ;
-tbePlaySong::
+tbe_playSong::
     push    hl
     ld      a, [hl+]                ; get the speed
-    ld      [timerPeriod], a        ; set the timer period to the speed
+    ld      [wTimerPeriod], a       ; set the timer period to the speed
     ld      a, [hl+]                ; get and save the pattern count
-    ld      [orderCount], a
+    ld      [wOrderCount], a
     ld      a, [hl+]
-    ld      [patternSize], a
+    ld      [wPatternSize], a
     ld      a, [hl+]
-    ld      [orderTable], a
-    ld      [currentOrder], a
+    ld      [wOrderTable], a
+    ld      [wCurrentOrder], a
     ld      a, [hl+]
-    ld      [orderTable + 1], a
-    ld      [currentOrder + 1], a
-    ld      a, $0F                  ; initialize chflags
-    ld      [chflags], a
+    ld      [wOrderTable + 1], a
+    ld      [wCurrentOrder + 1], a
+    ld      a, $0F                   ; initialize chflags
+    ld      [wChflags], a
     ld      a, PATTERN_CMD_JUMP
-    ld      [patternCommand], a
+    ld      [wPatternCommand], a
     xor     a
-    ld      [patternParam], a
-    ld      [timer], a              ; reset the timer
-    ld      [orderCounter], a
+    ld      [wPatternParam], a
+    ld      [wTimer], a              ; reset the timer
+    ld      [wOrderCounter], a
 
     pop     hl
     ret
 
-tbePlaySfx::
+tbe_playSfx::
     ret
 
 
-tbeUpdate::
-    ld      a, [status]
+tbe_update::
+    ld      a, [wStatus]
     bit     ENGINE_FLAGS_HALTED, a
     ret     nz
 
-    ld      a, [timer]              ; check if timer is active (timer < UNIT_SPEED)
+    ld      a, [wTimer]                 ; check if timer is active (timer < UNIT_SPEED)
     and     a, %11111000
     jr      nz, .timerNotActive
     ; timer is active (start of new row)
     ; apply the pattern effect (jump/skip)
     ; start the
-    ld      a, [patternCommand]
-    xor     a, PATTERN_CMD_JUMP     ; check if a == PATTERN_CMD_JUMP
+    ld      a, [wPatternCommand]
+    xor     a, PATTERN_CMD_JUMP         ; check if a == PATTERN_CMD_JUMP
     jr      nz, .skipCmd
     ; jump command
-    ld      a, [orderTable]
+    ld      a, [wOrderTable]
     ld      c, a
-    ld      a, [orderTable + 1]
+    ld      a, [wOrderTable + 1]
     ld      b, a
     ; should we error check? buffer overrun will occur if patternParam > orderCount
     ; nah, but if error just halt
-    ld      a, [patternParam]
-    ld      [orderCounter], a
+    ld      a, [wPatternParam]
+    ld      [wOrderCounter], a
     ; an order is 4 pointers or 8 bytes, so we need to multiply patternParam by 8
-    ld      h, 0                    ; hl = patternParam
+    ld      h, 0                        ; hl = patternParam
     ld      l, a
-    add     hl, hl                  ; shift left 3 times
+    add     hl, hl                      ; shift left 3 times
     add     hl, hl
     add     hl, hl
-    add     hl, bc                  ; offset the order table
+    add     hl, bc                      ; offset the order table
 
-    ld      de, ch1Ptr              ; copy the order to the channel pointers
+    ld      de, wCh1Ptr                 ; copy the order to the channel pointers
     ld      b, 0
     ld      c, 8
     call    memcpy
 
-    ld      a, $0F                  ; new row for all channels
-    ld      [chflags], a
+    ld      a, $0F                      ; new row for all channels
+    ld      [wChflags], a
 
-    xor     a                       ; reset row counters
-    ld      [rowCounter1], a
-    ld      [rowCounter2], a
-    ld      [rowCounter3], a
-    ld      [rowCounter4], a
+    xor     a                           ; reset row counters
+    ld      [wRowCounter1], a
+    ld      [wRowCounter2], a
+    ld      [wRowCounter3], a
+    ld      [wRowCounter4], a
 
     jr      .updateCmd
 .skipCmd:
     xor     a, PATTERN_CMD_SKIP ^ PATTERN_CMD_JUMP
     jr      nz, .noCmd
     ; skip command
-    ld      a, [orderCounter]
+    ld      a, [wOrderCounter]
     ld      b, a
-    ld      a, [orderCount]
+    ld      a, [wOrderCount]
     xor     a, b
-    jr      z, .noIncrement         ; check if the orderCounter == orderCount (last order)
-    inc     b                       ; nope, just increment to the next order
-    ld      a, [currentOrder]       ; hl = currentOrder
+    jr      z, .noIncrement             ; check if the orderCounter == orderCount (last order)
+    inc     b                           ; nope, just increment to the next order
+    ld      a, [wCurrentOrder]          ; hl = currentOrder
     ld      l, a
-    ld      a, [currentOrder + 1]
+    ld      a, [wCurrentOrder + 1]
     ld      h, a
     ld      d, 0
     ld      e, 8
-    add     hl, de                  ; point hl to the next one
+    add     hl, de                      ; point hl to the next one
     ld      a, b
     jr      .updateOrderVars
-.noIncrement:                       ; end of order, go back to the start (0)
-    ld      a,  [orderTable]        ; currentOrder = orderTable
+.noIncrement:                           ; end of order, go back to the start (0)
+    ld      a,  [wOrderTable]           ; currentOrder = orderTable
     ld      l, a
-    ld      a, [orderTable + 1]
+    ld      a, [wOrderTable + 1]
     ld      h, a
-    xor     a                       ; orderCounter = 0
+    xor     a                           ; orderCounter = 0
 .updateOrderVars:
-    ld      [orderCounter], a       ; update orderCounter and currentOrder
+    ld      [wOrderCounter], a          ; update orderCounter and currentOrder
     ld      a, l
-    ld      [currentOrder], a
+    ld      [wCurrentOrder], a
     ld      a, h
-    ld      [currentOrder + 1], a
-    ld      a, [patternParam]
+    ld      [wCurrentOrder + 1], a
+    ld      a, [wPatternParam]
     or      a
     call    nz, fastforward
 
 .updateCmd:
     xor     a
-    ld      [patternCommand], a     ; reset pattern command variable
+    ld      [wPatternCommand], a        ; reset pattern command variable
 .noCmd:
 
 .timerNotActive:
 
-    ld      a, [timerPeriod]        ; b = timerPeriod
+    ld      a, [wTimerPeriod]           ; b = timerPeriod
     ld      b, a
-    ld      a, [timer]              ; a = timer
-    add     a, UNIT_SPEED           ; increment the timer
-    ld      c, a                    ; save if timer does not overflow
-    sub     a, b                    ; timer -= timerPeriod
-    jr      c, .incrementTimer      ; the timer overflowed if z or nc
+    ld      a, [wTimer]                 ; a = timer
+    add     a, UNIT_SPEED               ; increment the timer
+    ld      c, a                        ; save if timer does not overflow
+    sub     a, b                        ; timer -= timerPeriod
+    jr      c, .incrementTimer          ; the timer overflowed if z or nc
     jr      .updateTimer
 .incrementTimer:
     ld      a, c
 .updateTimer:
-    ld      [timer], a              ; update timer
+    ld      [wTimer], a              ; update timer
     ; if we didn't overflow, we need to decrement the row counters
     jr      c, .exit
 
@@ -203,24 +191,24 @@ tbeUpdate::
     updateRowCounter 3
     updateRowCounter 4
 
-    ld      a, [patternCounter]                     ; check if patternCounter == 0
+    ld      a, [wPatternCounter]            ; check if patternCounter == 0
     or      a
     jr      nz, .decrementPatternCounter
     ; pattern ended, load next one in the order
-    ld      a, [patternCommand]                     ; check if patternCommand == 0 (no command set)
+    ld      a, [wPatternCommand]            ; check if patternCommand == 0 (no command set)
     or      a
     jr      nz, .reloadPatternCounter
-    ld      a, PATTERN_CMD_SKIP                     ; skip to the next pattern
-    ld      [patternCommand], a
-    xor     a                                       ; clear the param (so we start at row 0)
-    ld      [patternParam], a
+    ld      a, PATTERN_CMD_SKIP             ; skip to the next pattern
+    ld      [wPatternCommand], a
+    xor     a                               ; clear the param (so we start at row 0)
+    ld      [wPatternParam], a
 .reloadPatternCounter:
-    ld      a, [patternSize]                        ; 
+    ld      a, [wPatternSize] 
     jr      .writePatternCounter
 .decrementPatternCounter:
     dec     a
 .writePatternCounter:
-    ld      [patternCounter], a
+    ld      [wPatternCounter], a
     
 .exit:
     ret

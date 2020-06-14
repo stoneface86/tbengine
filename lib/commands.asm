@@ -14,28 +14,28 @@ cmdFnGoto:
 cmdFnSkip:
     ld      a, PATTERN_CMD_SKIP
 .setPatternCmd:
-    ld      [patternCommand], a
+    ld      [wPatternCommand], a
     ld      a, b
-    ld      [patternParam], a
+    ld      [wPatternParam], a
     ret
 
 cmdFnHalt:
-    ld      a, [status]             ; set the halted bit in status
+    ld      a, [wStatus]            ; set the halted bit in status
     set     ENGINE_FLAGS_HALTED, a
-    ld      [status], a
+    ld      [wStatus], a
     add     sp, 2                   ; throw away return address
-    jp      tbeUpdate.exit          ; stop everything
+    jp      tbe_update.exit         ; stop everything
 
 cmdFnTempo:
     ; parameter 1, a - new speed to set
     ; check if a is >= 8 and < $F8
     cp      a, $8
-    ret     c                   ; no-op if new speed < $8 (1.0)
+    ret     c                       ; no-op if new speed < $8 (1.0)
     cp      a, $F8
-    ret     nc                  ; no-op if new speed >= $F8 (31.0)
-    ld      [timerPeriod], a    ; set the new period
-    xor     a                   ; clear the current timer
-    ld      [timer], a
+    ret     nc                      ; no-op if new speed >= $F8 (31.0)
+    ld      [wTimerPeriod], a       ; set the new period
+    xor     a                       ; clear the current timer
+    ld      [wTimer], a
     ret
 
 cmdFnSfx:

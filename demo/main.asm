@@ -115,17 +115,17 @@ Start:
     ; ld [hl], a
 
     ; ld      hl, FreqControl1
-    call    tbeInit
+    call    tbe_init
     
     ld      hl, sampleSong
-    call    tbePlaySong
+    call    tbe_playSong
 
 .gameloop
     call    WaitVBlank
 
     ; vibrato example, (demo purposes only, will be moved to library)
     ; this is what effect 441 will sound like
-    call    tbeUpdate
+    call    tbe_update
 
     ; call    fc_step
 
