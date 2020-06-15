@@ -6,6 +6,8 @@ ELSE
 SECTION "tbengine", ROMX
 ENDC
 
+INCLUDE "hardware.inc"
+
 UNIT_SPEED EQU %00001000    ; unit speed, 1.0 in Q5.3 format
 ENGINE_FLAGS_HALTED EQU 0
 
@@ -14,6 +16,7 @@ ENGINE_CHFLAGS_ROWEN2 EQU 1
 ENGINE_CHFLAGS_ROWEN3 EQU 2
 ENGINE_CHFLAGS_ROWEN4 EQU 3
 
+ENGINE_DEFAULT_ENVELOPE EQU $F0
 
 PATTERN_CMD_NONE EQU 0
 PATTERN_CMD_SKIP EQU 1
@@ -49,7 +52,47 @@ tbe_init::
     xor     a
     call    memset
 
+    ; init sound regs
+    ld      a, $80
+    ld      [rNR52], a                      ; sound ON
+    xor     a
+    ld      [rNR51], a                      ; mute all terminals
+    cpl
+    ld      [rNR50], a                      ; enable both terminals, max volume
+
+    ; init channel settings
+    call    reset_channels
+
     pop     hl
+    pop     bc
+    ret
+
+dDefaultChSettings:
+    ; reg status
+    DB  $FF, $FF
+    ; timbre
+    DB  %00010000
+    ; envelope
+    DB  $F0, $F0, $00, $F0
+    ; panning
+    DB  $FF
+dDefaultChSettingsEnd:
+
+;
+; Reset all channel settings to defaults
+;
+reset_channels:
+    push    bc
+    push    de
+    push    hl
+
+    ld      bc, dDefaultChSettingsEnd - dDefaultChSettings
+    ld      hl, dDefaultChSettings
+    ld      de, wChannelSettings
+    call    memcpy
+
+    pop     hl
+    pop     de
     pop     bc
     ret
 
