@@ -7,29 +7,29 @@
 ;  hl - program counter (can be modified by commands)
 ;  all registers except a and hl can be trashed
 
-cmdFnGoto:
+_tbe_cmdFnGoto:
     ld      a, PATTERN_CMD_JUMP
-    jr      cmdFnSkip.setPatternCmd
+    jr      _tbe_cmdFnSkip.setPatternCmd
 
-cmdFnSkip:
+_tbe_cmdFnSkip:
     ld      a, PATTERN_CMD_SKIP
 .setPatternCmd:
-    ld      [wPatternCommand], a
+    ld      [tbe_wPatternCommand], a
     ld      a, b
-    ld      [wPatternParam], a
+    ld      [tbe_wPatternParam], a
     ret
 
-cmdFnHalt:
-    ld      a, [wStatus]            ; set the halted bit in status
+_tbe_cmdFnHalt:
+    ld      a, [tbe_wStatus]            ; set the halted bit in status
     set     ENGINE_FLAGS_HALTED, a
-    ld      [wStatus], a
+    ld      [tbe_wStatus], a
     
     ; TODO: turn sound off
 
     ; halting occurs immediately
     ; go back to tbe_update using the saved sp
     
-    ld      hl, wStack              ; load the saved sp
+    ld      hl, tbe_wStack              ; load the saved sp
     ld      a, [hl+]
     ld      e, a
     ld      a, [hl]
@@ -38,66 +38,66 @@ cmdFnHalt:
     ld      sp, hl                  ; update sp
     jp      tbe_update.exit         ; go to end of tbe_update
 
-cmdFnTempo:
+_tbe_cmdFnTempo:
     ; parameter 1, a - new speed to set
     ; check if a is >= 8 and < $F8
     cp      a, $8
     ret     c                       ; no-op if new speed < $8 (1.0)
     cp      a, $F8
     ret     nc                      ; no-op if new speed >= $F8 (31.0)
-    ld      [wTimerPeriod], a       ; set the new period
+    ld      [tbe_wTimerPeriod], a       ; set the new period
     xor     a                       ; clear the current timer
-    ld      [wTimer], a
+    ld      [tbe_wTimer], a
     ret
 
-cmdFnSfx:
+_tbe_cmdFnSfx:
     ret
 
-cmdFnSfxStop:
+_tbe_cmdFnSfxStop:
     ret
 
-cmdFnArp:
+_tbe_cmdFnArp:
     ret
 
-cmdFnPitchSlideUp:
+_tbe_cmdFnPitchSlideUp:
     ret
 
-cmdFnPitchSlideDown:
+_tbe_cmdFnPitchSlideDown:
     ret
 
-cmdFnNoteSlideUp:
+_tbe_cmdFnNoteSlideUp:
     ret
 
-cmdFnNoteSlideDown:
+_tbe_cmdFnNoteSlideDown:
     ret
 
-cmdFnTune:
+_tbe_cmdFnTune:
     ret
 
-cmdFnPortamento:
+_tbe_cmdFnPortamento:
     ret
 
-cmdFnVibrato:
+_tbe_cmdFnVibrato:
     ret
 
-cmdFnSetEnvelope:
+_tbe_cmdFnSetEnvelope:
     ret
 
-cmdFnSetTimbre:
+_tbe_cmdFnSetTimbre:
     ret
 
-cmdFnSetPanning:
+_tbe_cmdFnSetPanning:
     ret
 
-cmdFnInstrumentSet:
+_tbe_cmdFnInstrumentSet:
     ret
 
-cmdFnInstrumentOff:
+_tbe_cmdFnInstrumentOff:
     ret
 
-cmdFnDelayedCut:
+_tbe_cmdFnDelayedCut:
     ret
 
-cmdFnDelayedNote:
+_tbe_cmdFnDelayedNote:
     ret
 

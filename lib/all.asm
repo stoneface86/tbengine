@@ -14,5 +14,5 @@ INCLUDE "lib/wram.asm"
 PRINTT "ROM usage: "
 PRINTI tbe_end - tbe_begin
 PRINTT "\nRAM usage: "
-PRINTI tbeWramEnd - tbeWramBegin
+PRINTI tbe_wWramEnd - tbe_wWramBegin
 PRINTT "\n"

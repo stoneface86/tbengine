@@ -29,16 +29,16 @@ SongHeader_order        RW 1
 SongHeader_SIZEOF       RB 0
 
 updateRowCounter: MACRO
-    ld      a, [wRowCounter\1]          ; get the row counter for the channel
+    ld      a, [tbe_wRowCounter\1]          ; get the row counter for the channel
     or      a                           ; set zero flag
     jr      nz, .decrementRowCounter\1
-    ld      a, [wChflags]               ; get the channel flags
+    ld      a, [tbe_wChflags]               ; get the channel flags
     set     \1 - 1, a                   ; set new row for the channel
-    ld      [wChflags], a               ; store it back
+    ld      [tbe_wChflags], a               ; store it back
     jr      .endRowCounter\1
 .decrementRowCounter\1:
     dec     a
-    ld      [wRowCounter\1], a          ; store the counter
+    ld      [tbe_wRowCounter\1], a          ; store the counter
 .endRowCounter\1:
 ENDM
 
@@ -47,10 +47,10 @@ tbe_init::
     push    bc
     push    hl
 
-    ld      bc, tbeWramEnd - tbeWramBegin
-    ld      hl, tbeWramBegin
+    ld      bc, tbe_wWramEnd - tbe_wWramBegin
+    ld      hl, tbe_wWramBegin
     xor     a
-    call    memset
+    call    _tbe_memset
 
     ; init sound regs
     ld      a, $80
@@ -61,13 +61,13 @@ tbe_init::
     ld      [rNR50], a                      ; enable both terminals, max volume
 
     ; init channel settings
-    call    reset_channels
+    call    _tbe_reset_channels
 
     pop     hl
     pop     bc
     ret
 
-dDefaultChSettings:
+tbe_dDefaultChSettings:
     ; reg status
     DB  $FF, $FF
     ; timbre
@@ -76,20 +76,20 @@ dDefaultChSettings:
     DB  $F0, $F0, $00, $F0
     ; panning
     DB  $FF
-dDefaultChSettingsEnd:
+tbe_dDefaultChSettingsEnd:
 
 ;
 ; Reset all channel settings to defaults
 ;
-reset_channels:
+_tbe_reset_channels:
     push    bc
     push    de
     push    hl
 
-    ld      bc, dDefaultChSettingsEnd - dDefaultChSettings
-    ld      hl, dDefaultChSettings
-    ld      de, wChannelSettings
-    call    memcpy
+    ld      bc, tbe_dDefaultChSettingsEnd - tbe_dDefaultChSettings
+    ld      hl, tbe_dDefaultChSettings
+    ld      de, tbe_wChannelSettings
+    call    _tbe_memcpy
 
     pop     hl
     pop     de
@@ -103,25 +103,25 @@ reset_channels:
 tbe_playSong::
     push    hl
     ld      a, [hl+]                ; get the speed
-    ld      [wTimerPeriod], a       ; set the timer period to the speed
+    ld      [tbe_wTimerPeriod], a       ; set the timer period to the speed
     ld      a, [hl+]                ; get and save the pattern count
-    ld      [wOrderCount], a
+    ld      [tbe_wOrderCount], a
     ld      a, [hl+]
-    ld      [wPatternSize], a
+    ld      [tbe_wPatternSize], a
     ld      a, [hl+]
-    ld      [wOrderTable], a
-    ld      [wCurrentOrder], a
+    ld      [tbe_wOrderTable], a
+    ld      [tbe_wCurrentOrder], a
     ld      a, [hl+]
-    ld      [wOrderTable + 1], a
-    ld      [wCurrentOrder + 1], a
+    ld      [tbe_wOrderTable + 1], a
+    ld      [tbe_wCurrentOrder + 1], a
     ld      a, $0F                   ; initialize chflags
-    ld      [wChflags], a
+    ld      [tbe_wChflags], a
     ld      a, PATTERN_CMD_JUMP
-    ld      [wPatternCommand], a
+    ld      [tbe_wPatternCommand], a
     xor     a
-    ld      [wPatternParam], a
-    ld      [wTimer], a              ; reset the timer
-    ld      [wOrderCounter], a
+    ld      [tbe_wPatternParam], a
+    ld      [tbe_wTimer], a              ; reset the timer
+    ld      [tbe_wOrderCounter], a
 
     pop     hl
     ret
@@ -131,30 +131,30 @@ tbe_playSfx::
 
 
 tbe_update::
-    ld      a, [wStatus]
+    ld      a, [tbe_wStatus]
     bit     ENGINE_FLAGS_HALTED, a
     ret     nz
 
-    ld      [wStack], sp
+    ld      [tbe_wStack], sp
 
-    ld      a, [wTimer]                 ; check if timer is active (timer < UNIT_SPEED)
+    ld      a, [tbe_wTimer]                 ; check if timer is active (timer < UNIT_SPEED)
     and     a, %11111000
     jp      nz, .timerNotActive
     ; timer is active (start of new row)
     ; apply the pattern effect (jump/skip)
     ; start the
-    ld      a, [wPatternCommand]
+    ld      a, [tbe_wPatternCommand]
     xor     a, PATTERN_CMD_JUMP         ; check if a == PATTERN_CMD_JUMP
     jr      nz, .skipCmd
     ; jump command
-    ld      a, [wOrderTable]
+    ld      a, [tbe_wOrderTable]
     ld      c, a
-    ld      a, [wOrderTable + 1]
+    ld      a, [tbe_wOrderTable + 1]
     ld      b, a
     ; should we error check? buffer overrun will occur if patternParam > orderCount
     ; nah, but if error just halt
-    ld      a, [wPatternParam]
-    ld      [wOrderCounter], a
+    ld      a, [tbe_wPatternParam]
+    ld      [tbe_wOrderCounter], a
     ; an order is 4 pointers or 8 bytes, so we need to multiply patternParam by 8
     ld      h, 0                        ; hl = patternParam
     ld      l, a
@@ -163,34 +163,34 @@ tbe_update::
     add     hl, hl
     add     hl, bc                      ; offset the order table
 
-    ld      de, wCh1Ptr                 ; copy the order to the channel pointers
+    ld      de, tbe_wCh1Ptr                 ; copy the order to the channel pointers
     ld      b, 0
     ld      c, 8
-    call    memcpy
+    call    _tbe_memcpy
 
     ld      a, $0F                      ; new row for all channels
-    ld      [wChflags], a
+    ld      [tbe_wChflags], a
 
     xor     a                           ; reset row counters
-    ld      [wRowCounter1], a
-    ld      [wRowCounter2], a
-    ld      [wRowCounter3], a
-    ld      [wRowCounter4], a
+    ld      [tbe_wRowCounter1], a
+    ld      [tbe_wRowCounter2], a
+    ld      [tbe_wRowCounter3], a
+    ld      [tbe_wRowCounter4], a
 
     jr      .updateCmd
 .skipCmd:
     xor     a, PATTERN_CMD_SKIP ^ PATTERN_CMD_JUMP
     jr      nz, .noCmd
     ; skip command
-    ld      a, [wOrderCounter]
+    ld      a, [tbe_wOrderCounter]
     ld      b, a
-    ld      a, [wOrderCount]
+    ld      a, [tbe_wOrderCount]
     xor     a, b
     jr      z, .noIncrement             ; check if the orderCounter == orderCount (last order)
     inc     b                           ; nope, just increment to the next order
-    ld      a, [wCurrentOrder]          ; hl = currentOrder
+    ld      a, [tbe_wCurrentOrder]          ; hl = currentOrder
     ld      l, a
-    ld      a, [wCurrentOrder + 1]
+    ld      a, [tbe_wCurrentOrder + 1]
     ld      h, a
     ld      d, 0
     ld      e, 8
@@ -198,49 +198,49 @@ tbe_update::
     ld      a, b
     jr      .updateOrderVars
 .noIncrement:                           ; end of order, go back to the start (0)
-    ld      a,  [wOrderTable]           ; currentOrder = orderTable
+    ld      a,  [tbe_wOrderTable]           ; currentOrder = orderTable
     ld      l, a
-    ld      a, [wOrderTable + 1]
+    ld      a, [tbe_wOrderTable + 1]
     ld      h, a
     xor     a                           ; orderCounter = 0
 .updateOrderVars:
-    ld      [wOrderCounter], a          ; update orderCounter and currentOrder
+    ld      [tbe_wOrderCounter], a          ; update orderCounter and currentOrder
     ld      a, l
-    ld      [wCurrentOrder], a
+    ld      [tbe_wCurrentOrder], a
     ld      a, h
-    ld      [wCurrentOrder + 1], a
-    ld      a, [wPatternParam]
+    ld      [tbe_wCurrentOrder + 1], a
+    ld      a, [tbe_wPatternParam]
     or      a
-    call    nz, fastforward
+    call    nz, _tbe_fastforward
 
 .updateCmd:
     xor     a
-    ld      [wPatternCommand], a        ; reset pattern command variable
+    ld      [tbe_wPatternCommand], a        ; reset pattern command variable
 .noCmd:
 
-    ld      a, [wChflags]
+    ld      a, [tbe_wChflags]
     ld      c, a
     ld      b, 0
     bit     ENGINE_CHFLAGS_ROWEN1, c
-    call    nz, parseRow
+    call    nz, _tbe_parseRow
     inc     b
     bit     ENGINE_CHFLAGS_ROWEN2, c
-    call    nz, parseRow
+    call    nz, _tbe_parseRow
     inc     b
     bit     ENGINE_CHFLAGS_ROWEN3, c
-    call    nz, parseRow
+    call    nz, _tbe_parseRow
     inc     b
     bit     ENGINE_CHFLAGS_ROWEN4, c
-    call    nz, parseRow
+    call    nz, _tbe_parseRow
     ld      a, c
     and     a, $F0                      ; reset all rowen flags
-    ld      [wChflags], a
+    ld      [tbe_wChflags], a
 
 .timerNotActive:
 
-    ld      a, [wTimerPeriod]           ; b = timerPeriod
+    ld      a, [tbe_wTimerPeriod]           ; b = timerPeriod
     ld      b, a
-    ld      a, [wTimer]                 ; a = timer
+    ld      a, [tbe_wTimer]                 ; a = timer
     add     a, UNIT_SPEED               ; increment the timer
     ld      c, a                        ; save if timer does not overflow
     sub     a, b                        ; timer -= timerPeriod
@@ -249,7 +249,7 @@ tbe_update::
 .incrementTimer:
     ld      a, c
 .updateTimer:
-    ld      [wTimer], a              ; update timer
+    ld      [tbe_wTimer], a              ; update timer
     ; if we didn't overflow, we need to decrement the row counters
     jr      c, .exit
 
@@ -260,24 +260,24 @@ tbe_update::
     updateRowCounter 3
     updateRowCounter 4
 
-    ld      a, [wPatternCounter]            ; check if patternCounter == 0
+    ld      a, [tbe_wPatternCounter]            ; check if patternCounter == 0
     or      a
     jr      nz, .decrementPatternCounter
     ; pattern ended, load next one in the order
-    ld      a, [wPatternCommand]            ; check if patternCommand == 0 (no command set)
+    ld      a, [tbe_wPatternCommand]            ; check if patternCommand == 0 (no command set)
     or      a
     jr      nz, .reloadPatternCounter
     ld      a, PATTERN_CMD_SKIP             ; skip to the next pattern
-    ld      [wPatternCommand], a
+    ld      [tbe_wPatternCommand], a
     xor     a                               ; clear the param (so we start at row 0)
-    ld      [wPatternParam], a
+    ld      [tbe_wPatternParam], a
 .reloadPatternCounter:
-    ld      a, [wPatternSize] 
+    ld      a, [tbe_wPatternSize] 
     jr      .writePatternCounter
 .decrementPatternCounter:
     dec     a
 .writePatternCounter:
-    ld      [wPatternCounter], a
+    ld      [tbe_wPatternCounter], a
     
 .exit:
     ret
@@ -287,11 +287,11 @@ tbe_update::
 ; Parse a row for the given channel
 ;  b - channel id
 ;
-parseRow:
-    ASSERT FATAL, LOW(wCh1Ptr) <= $F8, "low byte of wCh1Ptr must be <= $F8"
+_tbe_parseRow:
+    ASSERT FATAL, LOW(tbe_wCh1Ptr) <= $F8, "low byte of tbe_wCh1Ptr must be <= $F8"
     push    bc
     push    de
-    ld      hl, wCh1Ptr         ; hl = channel pointer
+    ld      hl, tbe_wCh1Ptr         ; hl = channel pointer
     ld      a, b                ; offset hl by channel id * 2
     rla
     add     a, l
@@ -313,7 +313,7 @@ parseRow:
     ; duration byte
     and     a, $3F              ; mask the duration
     ld      c, a                ; c = duration
-    ld      de, wRowDuration1   ; de = row duration variable
+    ld      de, tbe_wRowDuration1   ; de = row duration variable
     ld      a, e
     add     a, b                ; offset by channel id
     ld      e, a
@@ -335,7 +335,7 @@ parseRow:
     and     a, $1F              ; a = command index
     rla
     push    hl
-    ld      hl, CommandTable
+    ld      hl, tbe_dCommandTable
     ld      d, 0
     ld      e, a
     add     hl, de
@@ -346,7 +346,7 @@ parseRow:
     ld      l, e
     
     ld      a, c
-    call    _jp_hl
+    call    _tbe_jp_hl
     pop     hl
 
     jr      .getbyte
@@ -358,11 +358,11 @@ parseRow:
     inc     e
     ld      a, h
     ld      [de], a
-    ld      de, wRowDuration1
+    ld      de, tbe_wRowDuration1
     ld      a, e
     add     a, b
     ld      e, a
-    ld      hl, wRowCounter1
+    ld      hl, tbe_wRowCounter1
     ld      a, l
     add     a, b
     ld      l, a
@@ -372,7 +372,7 @@ parseRow:
     pop     bc
     ret
 
-_jp_hl:
+_tbe_jp_hl:
     jp      hl
 
 ;
@@ -381,7 +381,7 @@ _jp_hl:
 ; from a given row
 ; a - the row to start at
 ;
-fastforward:
+_tbe_fastforward:
     ; TODO implement fast forward
     ret
 

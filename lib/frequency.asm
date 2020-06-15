@@ -108,7 +108,7 @@ fc_reset:
     push    bc
     ld      bc, FreqControl_SIZEOF
     xor     a, a
-    call    memset                  ; reset results in all fields set to 0
+    call    _tbe_memset             ; reset results in all fields set to 0
     pop     bc
     ret
 
@@ -141,7 +141,7 @@ fc_frequency:
     ld      a, [hl]                 ; d = tune
     ld      h, b                    ; hl = bc
     ld      l, c
-    call    addsw                   ; hl += a (frequency is now offset by tune)
+    call    _tbe_addsw              ; hl += a (frequency is now offset by tune)
     ld      b, h                    ; bc = hl
     ld      c, l
 
@@ -154,7 +154,7 @@ fc_frequency:
     ld      a, [hl]                 ; a = vibCounter
     ld      h, b
     ld      l, c
-    call    addsw                   ; hl += a (frequency is now offset by vibCounter)
+    call    _tbe_addsw              ; hl += a (frequency is now offset by vibCounter)
     ld      b, h                    ; bc = hl
     ld      c, l
 .skipVibrato:
@@ -194,7 +194,7 @@ fc_setVibrato:
     ld      a, b                        ; restore parameter
     swap    a                           ; multiply by 16
     and     a, $F0
-    ld      hl, VibratoTable
+    ld      hl, tbe_dVibratoTable
     ld      b, 0
     ld      c, a
     add     hl, bc

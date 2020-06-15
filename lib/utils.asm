@@ -3,7 +3,7 @@
 ; hl = destination address
 ; bc = byte count
 ; a = byte value
-memset:
+_tbe_memset:
     inc     c
     inc     b
     jr      .start
@@ -22,14 +22,14 @@ memset:
 ; de = destination address
 ; bc = number of bytes to copy
 ;
-memcpy:
+_tbe_memcpy:
     ld      a, [hl+]
     ld      [de], a
     inc     de
     dec     bc
     ld      a, b
     or      c
-    jr      nz, memcpy
+    jr      nz, _tbe_memcpy
     ret
 
 ;
@@ -41,6 +41,6 @@ memcpy:
 ; Output
 ;  * hl : result of hl + a
 ;
-addsw:
+_tbe_addsw:
     _addsw  bc
     ret
