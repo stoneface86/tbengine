@@ -30,10 +30,10 @@ SongHeader_SIZEOF       RB 0
 
 updateRowCounter: MACRO
     ld      a, [tbe_wRowCounter\1]          ; get the row counter for the channel
-    or      a                           ; set zero flag
+    or      a                               ; set zero flag
     jr      nz, .decrementRowCounter\1
     ld      a, [tbe_wChflags]               ; get the channel flags
-    set     \1 - 1, a                   ; set new row for the channel
+    set     \1 - 1, a                       ; set new row for the channel
     ld      [tbe_wChflags], a               ; store it back
     jr      .endRowCounter\1
 .decrementRowCounter\1:
@@ -102,9 +102,9 @@ _tbe_reset_channels:
 ;
 tbe_playSong::
     push    hl
-    ld      a, [hl+]                ; get the speed
+    ld      a, [hl+]                    ; get the speed
     ld      [tbe_wTimerPeriod], a       ; set the timer period to the speed
-    ld      a, [hl+]                ; get and save the pattern count
+    ld      a, [hl+]                    ; get and save the pattern count
     ld      [tbe_wOrderCount], a
     ld      a, [hl+]
     ld      [tbe_wPatternSize], a
@@ -114,13 +114,13 @@ tbe_playSong::
     ld      a, [hl+]
     ld      [tbe_wOrderTable + 1], a
     ld      [tbe_wCurrentOrder + 1], a
-    ld      a, $0F                   ; initialize chflags
+    ld      a, $0F                      ; initialize chflags
     ld      [tbe_wChflags], a
-    ld      a, PATTERN_CMD_JUMP
+    ld      a, PATTERN_CMD_JUMP         ; setup a jump to pattern 0 to initialize chptrs
     ld      [tbe_wPatternCommand], a
     xor     a
     ld      [tbe_wPatternParam], a
-    ld      [tbe_wTimer], a              ; reset the timer
+    ld      [tbe_wTimer], a             ; reset the timer
     ld      [tbe_wOrderCounter], a
 
     pop     hl
@@ -144,7 +144,7 @@ tbe_update::
     ; apply the pattern effect (jump/skip)
     ; start the
     ld      a, [tbe_wPatternCommand]
-    xor     a, PATTERN_CMD_JUMP         ; check if a == PATTERN_CMD_JUMP
+    xor     a, PATTERN_CMD_JUMP             ; check if a == PATTERN_CMD_JUMP
     jr      nz, .skipCmd
     ; jump command
     ld      a, [tbe_wOrderTable]
@@ -156,22 +156,22 @@ tbe_update::
     ld      a, [tbe_wPatternParam]
     ld      [tbe_wOrderCounter], a
     ; an order is 4 pointers or 8 bytes, so we need to multiply patternParam by 8
-    ld      h, 0                        ; hl = patternParam
+    ld      h, 0                            ; hl = patternParam
     ld      l, a
-    add     hl, hl                      ; shift left 3 times
+    add     hl, hl                          ; shift left 3 times
     add     hl, hl
     add     hl, hl
-    add     hl, bc                      ; offset the order table
+    add     hl, bc                          ; offset the order table
 
     ld      de, tbe_wCh1Ptr                 ; copy the order to the channel pointers
     ld      b, 0
     ld      c, 8
     call    _tbe_memcpy
 
-    ld      a, $0F                      ; new row for all channels
+    ld      a, $0F                          ; new row for all channels
     ld      [tbe_wChflags], a
 
-    xor     a                           ; reset row counters
+    xor     a                               ; reset row counters
     ld      [tbe_wRowCounter1], a
     ld      [tbe_wRowCounter2], a
     ld      [tbe_wRowCounter3], a
@@ -186,23 +186,23 @@ tbe_update::
     ld      b, a
     ld      a, [tbe_wOrderCount]
     xor     a, b
-    jr      z, .noIncrement             ; check if the orderCounter == orderCount (last order)
-    inc     b                           ; nope, just increment to the next order
+    jr      z, .noIncrement                 ; check if the orderCounter == orderCount (last order)
+    inc     b                               ; nope, just increment to the next order
     ld      a, [tbe_wCurrentOrder]          ; hl = currentOrder
     ld      l, a
     ld      a, [tbe_wCurrentOrder + 1]
     ld      h, a
     ld      d, 0
     ld      e, 8
-    add     hl, de                      ; point hl to the next one
+    add     hl, de                          ; point hl to the next one
     ld      a, b
     jr      .updateOrderVars
-.noIncrement:                           ; end of order, go back to the start (0)
+.noIncrement:                               ; end of order, go back to the start (0)
     ld      a,  [tbe_wOrderTable]           ; currentOrder = orderTable
     ld      l, a
     ld      a, [tbe_wOrderTable + 1]
     ld      h, a
-    xor     a                           ; orderCounter = 0
+    xor     a                               ; orderCounter = 0
 .updateOrderVars:
     ld      [tbe_wOrderCounter], a          ; update orderCounter and currentOrder
     ld      a, l
@@ -233,7 +233,7 @@ tbe_update::
     bit     ENGINE_CHFLAGS_ROWEN4, c
     call    nz, _tbe_parseRow
     ld      a, c
-    and     a, $F0                      ; reset all rowen flags
+    and     a, $F0                          ; reset all rowen flags
     ld      [tbe_wChflags], a
 
 .timerNotActive:
@@ -241,15 +241,15 @@ tbe_update::
     ld      a, [tbe_wTimerPeriod]           ; b = timerPeriod
     ld      b, a
     ld      a, [tbe_wTimer]                 ; a = timer
-    add     a, UNIT_SPEED               ; increment the timer
-    ld      c, a                        ; save if timer does not overflow
-    sub     a, b                        ; timer -= timerPeriod
-    jr      c, .incrementTimer          ; the timer overflowed if z or nc
+    add     a, UNIT_SPEED                   ; increment the timer
+    ld      c, a                            ; save if timer does not overflow
+    sub     a, b                            ; timer -= timerPeriod
+    jr      c, .incrementTimer              ; the timer overflowed if z or nc
     jr      .updateTimer
 .incrementTimer:
     ld      a, c
 .updateTimer:
-    ld      [tbe_wTimer], a              ; update timer
+    ld      [tbe_wTimer], a                 ; update timer
     ; if we didn't overflow, we need to decrement the row counters
     jr      c, .exit
 
@@ -267,9 +267,9 @@ tbe_update::
     ld      a, [tbe_wPatternCommand]            ; check if patternCommand == 0 (no command set)
     or      a
     jr      nz, .reloadPatternCounter
-    ld      a, PATTERN_CMD_SKIP             ; skip to the next pattern
+    ld      a, PATTERN_CMD_SKIP                 ; skip to the next pattern
     ld      [tbe_wPatternCommand], a
-    xor     a                               ; clear the param (so we start at row 0)
+    xor     a                                   ; clear the param (so we start at row 0)
     ld      [tbe_wPatternParam], a
 .reloadPatternCounter:
     ld      a, [tbe_wPatternSize] 
@@ -292,7 +292,7 @@ _tbe_parseRow:
     push    bc
     push    de
     ld      hl, tbe_wCh1Ptr         ; hl = channel pointer
-    ld      a, b                ; offset hl by channel id * 2
+    ld      a, b                    ; offset hl by channel id * 2
     rla
     add     a, l
     ld      l, a
@@ -306,59 +306,59 @@ _tbe_parseRow:
 
 .getbyte:
     ld      a, [hl+]
-    bit     7, a                ; do we have a note?
-    jr      z, .notebyte        ; if reset we have a note byte (which ends the row)
-    bit     6, a                ; do we have a duration?
-    jr      z, .cmdbyte         ; if reset we have a command byte
+    bit     7, a                    ; do we have a note?
+    jr      z, .notebyte            ; if reset we have a note byte (which ends the row)
+    bit     6, a                    ; do we have a duration?
+    jr      z, .cmdbyte             ; if reset we have a command byte
     ; duration byte
-    and     a, $3F              ; mask the duration
-    ld      c, a                ; c = duration
+    and     a, $3F                  ; mask the duration
+    ld      c, a                    ; c = duration
     ld      de, tbe_wRowDuration1   ; de = row duration variable
     ld      a, e
-    add     a, b                ; offset by channel id
+    add     a, b                    ; offset by channel id
     ld      e, a
     ld      a, c
-    ld      [de], a             ; update duration
-    jr      .getbyte            ; get next byte
+    ld      [de], a                 ; update duration
+    jr      .getbyte                ; get next byte
 .cmdbyte
-    ld      d, a                ; c = command byte
-    bit     5, a                ; check for parameter
+    ld      d, a                    ; d = command byte
+    bit     5, a                    ; check for parameter
     jr      z, .noparam
-    ld      a, [hl+]
+    ld      a, [hl+]                ; next byte is the parameter
     jr      .paramdone
 .noparam:
-    xor     a
+    xor     a                       ; no parameter, default to 0
 .paramdone:
-    ld      c, a
-    ld      a, d
+    ld      c, a                    ; c = parameter
+    ld      a, d                    ; restore command byte
 
-    and     a, $1F              ; a = command index
-    rla
-    push    hl
-    ld      hl, tbe_dCommandTable
+    and     a, $1F                  ; a = command index
+    rla                             ; multiply by 2
+    push    hl                      ; save hl for later
+    ld      hl, tbe_dCommandTable   ; get the command function pointer
     ld      d, 0
     ld      e, a
     add     hl, de
     ld      a, [hl+]
     ld      e, a
     ld      a, [hl]
-    ld      h, a
+    ld      h, a                    ; hl = pointer to command function
     ld      l, e
     
-    ld      a, c
-    call    _tbe_jp_hl
+    ld      a, c                    ; restore parameter
+    call    _tbe_jp_hl              ; call the command
     pop     hl
 
-    jr      .getbyte
+    jr      .getbyte                ; keep going
 .notebyte:
     ; TODO: do something with the note (a)
-    pop     de
-    ld      a, l
+    pop     de                      ; de = channel pointer variable (was saved early on)
+    ld      a, l                    ; update channel pointer
     ld      [de], a
     inc     e
     ld      a, h
     ld      [de], a
-    ld      de, tbe_wRowDuration1
+    ld      de, tbe_wRowDuration1   ; set the row counter
     ld      a, e
     add     a, b
     ld      e, a

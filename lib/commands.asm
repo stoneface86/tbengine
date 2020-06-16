@@ -33,20 +33,20 @@ _tbe_cmdFnHalt:
     ld      a, [hl+]
     ld      e, a
     ld      a, [hl]
-    ld      h, a                    ; hl = sp
+    ld      h, a                        ; hl = sp
     ld      l, e
-    ld      sp, hl                  ; update sp
-    jp      tbe_update.exit         ; go to end of tbe_update
+    ld      sp, hl                      ; update sp
+    jp      tbe_update.exit             ; go to end of tbe_update
 
 _tbe_cmdFnTempo:
     ; parameter 1, a - new speed to set
     ; check if a is >= 8 and < $F8
     cp      a, $8
-    ret     c                       ; no-op if new speed < $8 (1.0)
+    ret     c                           ; no-op if new speed < $8 (1.0)
     cp      a, $F8
-    ret     nc                      ; no-op if new speed >= $F8 (31.0)
+    ret     nc                          ; no-op if new speed >= $F8 (31.0)
     ld      [tbe_wTimerPeriod], a       ; set the new period
-    xor     a                       ; clear the current timer
+    xor     a                           ; clear the current timer
     ld      [tbe_wTimer], a
     ret
 
