@@ -288,7 +288,6 @@ tbe_update::
 ;  b - channel id
 ;
 _tbe_parseRow:
-    ASSERT FATAL, LOW(tbe_wCh1Ptr) <= $F8, "low byte of tbe_wCh1Ptr must be <= $F8"
     push    bc
     push    de
     ld      hl, tbe_wCh1Ptr         ; hl = channel pointer
