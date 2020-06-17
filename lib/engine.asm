@@ -334,10 +334,12 @@ _tbe_parseRow:
     and     a, $1F                  ; a = command index
     rla                             ; multiply by 2
     push    hl                      ; save hl for later
-    ld      hl, tbe_dCommandTable   ; get the command function pointer
-    ld      d, 0
-    ld      e, a
-    add     hl, de
+
+ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
+    ; lookup the command
+    ld      h, HIGH(tbe_dCommandTable)
+    ld      l, a
+
     ld      a, [hl+]
     ld      e, a
     ld      a, [hl]
