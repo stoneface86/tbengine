@@ -7,6 +7,14 @@
 ;  hl - program counter (can be modified by commands)
 ;  all registers except a and hl can be trashed
 
+cmd_ret: MACRO
+    jp      _tbe_parseRow.cmdExit
+ENDM
+
+cmd_ret_cc: MACRO
+    jp      \1, _tbe_parseRow.cmdExit
+ENDM
+
 _tbe_cmdFnGoto:
     ld      a, PATTERN_CMD_JUMP
     jr      _tbe_cmdFnSkip.setPatternCmd
@@ -17,7 +25,7 @@ _tbe_cmdFnSkip:
     ld      [tbe_wPatternCommand], a
     ld      a, b
     ld      [tbe_wPatternParam], a
-    ret
+    cmd_ret
 
 _tbe_cmdFnHalt:
     ld      a, [tbe_wStatus]            ; set the halted bit in status
@@ -42,62 +50,62 @@ _tbe_cmdFnTempo:
     ; parameter 1, a - new speed to set
     ; check if a is >= 8 and < $F8
     cp      a, $8
-    ret     c                           ; no-op if new speed < $8 (1.0)
+    cmd_ret_cc c                         ; no-op if new speed < $8 (1.0)
     cp      a, $F8
-    ret     nc                          ; no-op if new speed >= $F8 (31.0)
+    cmd_ret_cc nc                       ; no-op if new speed >= $F8 (31.0)
     ld      [tbe_wTimerPeriod], a       ; set the new period
     xor     a                           ; clear the current timer
     ld      [tbe_wTimer], a
-    ret
+    cmd_ret
 
 _tbe_cmdFnSfx:
-    ret
+    cmd_ret
 
 _tbe_cmdFnSfxStop:
-    ret
+    cmd_ret
 
 _tbe_cmdFnArp:
-    ret
+    cmd_ret
 
 _tbe_cmdFnPitchSlideUp:
-    ret
+    cmd_ret
 
 _tbe_cmdFnPitchSlideDown:
-    ret
+    cmd_ret
 
 _tbe_cmdFnNoteSlideUp:
-    ret
+    cmd_ret
 
 _tbe_cmdFnNoteSlideDown:
-    ret
+    cmd_ret
 
 _tbe_cmdFnTune:
-    ret
+    cmd_ret
 
 _tbe_cmdFnPortamento:
-    ret
+    cmd_ret
 
 _tbe_cmdFnVibrato:
-    ret
+    cmd_ret
 
 _tbe_cmdFnSetEnvelope:
-    ret
+    cmd_ret
 
 _tbe_cmdFnSetTimbre:
-    ret
+    cmd_ret
 
 _tbe_cmdFnSetPanning:
-    ret
+    cmd_ret
 
 _tbe_cmdFnInstrumentSet:
-    ret
+    cmd_ret
 
 _tbe_cmdFnInstrumentOff:
-    ret
+    cmd_ret
 
 _tbe_cmdFnDelayedCut:
-    ret
+    cmd_ret
 
 _tbe_cmdFnDelayedNote:
-    ret
+    cmd_ret
 

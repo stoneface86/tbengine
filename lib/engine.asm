@@ -68,10 +68,10 @@ tbe_init::
     ret
 
 tbe_dDefaultChSettings:
-    ; reg status
-    DB  $FF, $FF
+    ; status
+    DB  $0F, $0F, $0F, $0F
     ; timbre
-    DB  %00010000
+    DB  %00010000 
     ; envelope
     DB  $F0, $F0, $00, $F0
     ; panning
@@ -347,7 +347,8 @@ ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
     ld      l, e
     
     ld      a, c                    ; restore parameter
-    call    _tbe_jp_hl              ; call the command
+    jp      hl                      ; goto command
+.cmdExit:                           ; command will return here when finished
     pop     hl
 
     jr      .getbyte                ; keep going
@@ -372,9 +373,6 @@ ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
     pop     de
     pop     bc
     ret
-
-_tbe_jp_hl:
-    jp      hl
 
 ;
 ; Adjusts row counters and channel pointers to start playing at a given row. The

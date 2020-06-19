@@ -80,8 +80,11 @@ tbe_wChannelSettings:
 ; bit 1: write envelope
 ; bit 2: write panning
 ; bit 3: retrigger
-tbe_wRegStatus12:       DS 1
-tbe_wRegStatus34:       DS 1
+tbe_wRegStatus1:        DS 1
+tbe_wRegStatus2:        DS 1
+tbe_wRegStatus3:        DS 1
+tbe_wRegStatus4:        DS 1
+
 
 ; timbre for square is duty, wave volume for wave and step width for noise
 ; bit 0-1: ch1 duty (12.5%, 25%, 50%, 75%)
