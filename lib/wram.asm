@@ -85,23 +85,35 @@ tbe_wRegStatus2:        DS 1
 tbe_wRegStatus3:        DS 1
 tbe_wRegStatus4:        DS 1
 
-
-; timbre for square is duty, wave volume for wave and step width for noise
-; bit 0-1: ch1 duty (12.5%, 25%, 50%, 75%)
-; bit 2-3: ch2 duty (12.5%, 25%, 50%, 75%)
-; bit 4-5: ch3 volume (0%, 100%, 50%, 25%)
-; bit 6: ch4 step width (15-bit, 7-bit)
-tbe_wTimbre:            DS 1
-
-; channel panning, exact format as NR51
-tbe_wPanning:           DS 1
-
 ; envelope settings for channels 1, 2 and 4
 ; for channel 3 the envelope is the waveform id
 tbe_wEnvelope1:         DS 1
 tbe_wEnvelope2:         DS 1
 tbe_wEnvelope3:         DS 1
 tbe_wEnvelope4:         DS 1
+
+; ========================================================== Quad #5: $28 - $2F
+
+; timbre for square is duty, wave volume for wave and step width for noise
+
+
+; ch1 duty, $00, $40, $80, $C0 (12.5%, 25%, 50%, 75%)
+tbe_wTimbre1:           DS 1
+; ch2 duty, $00, $40, $80, $C0 (12.5%, 25%, 50%, 75%)
+tbe_wTimbre2:           DS 1
+; ch3 volume $00, $20, $40, $60 (0%, 100%, 50%, 25%)
+tbe_wTimbre3:           DS 1
+; ch4 step width $00, $08 (15-bit, 7-bit)
+tbe_wTimbre4:           DS 1
+
+
+; channel panning (0 = none, 1 = pan right, 2 = pan left, 3 = pan both)
+tbe_wPanning1:          DS 1
+tbe_wPanning2:          DS 1
+tbe_wPanning3:          DS 1
+tbe_wPanning4:          DS 1
+
+
 
 tbe_wChannelSettingsEnd:
 

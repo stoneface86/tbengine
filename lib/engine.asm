@@ -70,12 +70,12 @@ tbe_init::
 tbe_dDefaultChSettings:
     ; status
     DB  $0F, $0F, $0F, $0F
-    ; timbre
-    DB  %00010000 
     ; envelope
     DB  $F0, $F0, $00, $F0
+    ; timbre
+    DB  $00, $00, $20, $00
     ; panning
-    DB  $FF
+    DB  $03, $03, $03, $03
 tbe_dDefaultChSettingsEnd:
 
 ;
@@ -373,6 +373,57 @@ ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
     pop     de
     pop     bc
     ret
+
+generate_templates: MACRO
+
+_tbe_writeTimbre\1:
+IF \1 == 0
+    ld      c, rNR11 - $FF00
+ELIF \1 == 1
+    ld      c, rNR21 - $FF00
+ELIF \1 == 2
+    ld      c, rNR32 - $FF00
+ELSE
+    ld      c, rNR43 - $FF00
+    ld      d, a
+    ld      a, [c]
+    res     3, a
+    or      a, d
+ENDC
+    ld      [c], a
+    ret
+ENDM
+
+    generate_templates 0
+    generate_templates 1
+    generate_templates 2
+    generate_templates 3
+    
+
+;
+; a - timbre to write
+; b - channel id
+;
+; _tbe_writeTimbre:
+
+; .ch1:
+;     ld      c, rNR11 - $FF00
+;     jr      .write
+; .ch2:
+;     ld      c, rNR21 - $FF00
+;     jr      .write
+; .ch3:
+;     ld      c, rNR32 - $FF00
+;     jr      .write
+; .ch4:
+;     ld      c, rNR43 - $FF00
+;     ld      d, a
+;     ld      a, [c]
+;     res     3, a
+;     or      a, d
+; .write:
+;     ld      [c], a
+;     ret
 
 ;
 ; Adjusts row counters and channel pointers to start playing at a given row. The

@@ -2,10 +2,9 @@
 ; Command functions
 
 ; command calling convention
-;  a - channel index (0, 1, 2 or 3)
-;  b - parameter 1 (0 if no parameter)
-;  hl - program counter (can be modified by commands)
-;  all registers except a and hl can be trashed
+;  a - parameter (0 if no parameter)
+;  b - channel id (0-3)
+;  all registers can be trashed, 
 
 cmd_ret: MACRO
     jp      _tbe_parseRow.cmdExit
@@ -88,13 +87,65 @@ _tbe_cmdFnPortamento:
 _tbe_cmdFnVibrato:
     cmd_ret
 
+;
+; utility function to store envelope/timbre/panning settings in wram
+; hl = pointer to setting
+; b = channel id
+; on return hl points to wRegStatus for the channel id
+;
+_tbe_setChParam:
+    ld      c, a                    ; save parameter into c
+    ld      a, b
+    add     a, l                    ; offset by channel id
+    ld      l, a
+    ld      a, c                    ; restore parameter
+    ld      [hl], a                 ; store parameter into wram variable
+
+    ld      hl, tbe_wRegStatus1     ; update status
+    ld      a, l
+    add     a, b
+    ld      l, a                    ; hl now points to reg status variable
+    ret
+
 _tbe_cmdFnSetEnvelope:
+    ld      hl, tbe_wEnvelope1      ; load envelope variable
+    call    _tbe_setChParam    
+    set     1, [hl]                 ; set bit 1 to update envelope on next register write
     cmd_ret
 
 _tbe_cmdFnSetTimbre:
+    ld      hl, tbe_wTimbre1
+    call    _tbe_setChParam
+    set     0, [hl]
     cmd_ret
 
 _tbe_cmdFnSetPanning:
+    ld      hl, tbe_wPanning1
+    call    _tbe_setChParam
+    set     2, [hl]
+
+;     ld      c, $EE                  ; bit mask to clear CH1's panning setting
+;     ld      e, b                    ; save b into e
+;     inc     b
+; .loop:
+;     dec     b
+;     jr      z, .loopend             ; stop when b == 0
+;     rlc     c                       ; rotate mask left
+;     rlca                            ; rotate new setting left
+;     jr      .loop
+; .loopend:
+;     ld      d, a
+;     ld      a, [tbe_wPanning]
+;     and     a, c
+;     or      a, d
+;     ld      [tbe_wPanning], a
+
+;     ld      hl, tbe_wRegStatus1
+;     ld      a, l
+;     add     a, e
+;     ld      l, a
+;     set     2, [hl]
+;     ld      b, e
     cmd_ret
 
 _tbe_cmdFnInstrumentSet:
