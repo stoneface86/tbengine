@@ -75,6 +75,7 @@ LIB_OBJ_FILES := lib/all.obj
 #       (speed, excluding files is a pain, etc)
 #
 OBJ_FILES := demo/main.obj \
+             demo/joypad.obj \
              demo/samplesong.obj \
              $(LIB_OBJ_FILES)
 OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))
