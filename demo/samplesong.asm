@@ -4,6 +4,26 @@ INCLUDE "tbengine.inc"
 
 SECTION "sample song data", ROM0
 
+tbe_waveTable::
+    DW wave_triangle
+    DW wave_square
+    DW wave_saw
+    DW wave_curved
+
+wave_triangle:
+    DB $01, $23, $45, $67, $89, $AB, $CD, $EF, $FE, $DC, $BA, $98, $76, $54, $32, $10
+
+; ~60% duty
+wave_square:
+    DB $00, $00, $00, $00, $00, $00, $0A, $AA, $AA, $AA, $AA, $AA, $AA, $AA, $AA, $AA
+
+; double period, same frequency range as CH1/CH2
+wave_saw:
+    DB $01, $23, $45, $67, $89, $AB, $CD, $EF, $01, $23, $45, $67, $89, $AB, $CD, $EF
+
+wave_curved:
+    DB $02, $46, $8A, $CE, $EF, $FF, $FE, $EE, $DD, $CB, $A9, $87, $65, $43, $22, $11
+
 sampleSong::
     DB $30              ; speed (6.0 frames per row, 150 BPM)
     DB $1 - 1           ; order size

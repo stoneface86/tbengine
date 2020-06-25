@@ -110,7 +110,10 @@ _tbe_setChParam:
 _tbe_cmdFnSetEnvelope:
     ld      hl, tbe_wEnvelope1      ; load envelope variable
     call    _tbe_setChParam    
-    set     1, [hl]                 ; set bit 1 to update envelope on next register write
+    ;set     1, [hl]                 ; set bit 1 to update envelope on next register write
+    ld      a, [hl]
+    or      REGSTAT_ENVELOPE | REGSTAT_RETRIGGER
+    ld      [hl], a
     cmd_ret
 
 _tbe_cmdFnSetTimbre:

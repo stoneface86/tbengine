@@ -37,7 +37,7 @@ tbe_wTimer:             DS 1        ; current timer value
 tbe_wTimerPeriod:       DS 1        ; number of frames per row in Q5.3 format
 
 ; bits 0-3: new row for CH1-4
-; bits 4-7: lock status for CH1-4
+; bits 4-7: lock status for CH1-4 (if set channel is unlocked)
 tbe_wChflags:           DS 1
 
 tbe_wOrderCount:        DS 1        ; number of patterns in order less 1
@@ -71,6 +71,7 @@ tbe_wPatternParam:      DS 1
 ; register data
 ; music updates the data here first and then to registers if the channel is
 ; unlocked (A locked channel has a sound effect playing on it)
+; settings are re-applied when an unlocked channel gets locked
 
 tbe_wChannelSettings:
 
@@ -113,6 +114,13 @@ tbe_wPanning2:          DS 1
 tbe_wPanning3:          DS 1
 tbe_wPanning4:          DS 1
 
+; ========================================================== Quad #6: $30 - $37
+
+tbe_wFreq1:             DS 2
+tbe_wFreq2:             DS 2
+tbe_wFreq3:             DS 2
+; noise channel frequency is just NR43 with bit 4 reset
+tbe_wFreq4:             DS 2
 
 
 tbe_wChannelSettingsEnd:

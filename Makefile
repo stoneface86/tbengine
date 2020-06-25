@@ -43,7 +43,7 @@ RGBGFX := rgbgfx
 #
 BGB := bgb
 
-ASM_FLAGS := -i $(INC_DIR)
+ASM_FLAGS := -i $(INC_DIR) -E
 LINK_FLAGS := -m $(ROM_MAP) -n $(ROM_SYM)
 FIX_FLAGS := -f lhg -i "$(ROM_ID)" -t "$(ROM_TITLE)" -p 0x0
 DEFINES := -D TBE_ROM0
@@ -135,7 +135,6 @@ $(ROM_GB): $(OBJ_FILES) $(MAKEFILE_LIST)
 	@$(RGBLINK) $(LINK_FLAGS) -o $@ $(OBJ_FILES)
 	@echo "FIX      $@"
 	@$(RGBFIX) $(FIX_FLAGS) $@
-$(ROM_GB): DEFINES += -D TBE_EXPORT_FC
 
 $(OBJ_FILES): | $(OBJ_DIRS)
 

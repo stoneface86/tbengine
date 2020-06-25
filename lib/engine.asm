@@ -11,10 +11,14 @@ INCLUDE "hardware.inc"
 UNIT_SPEED EQU %00001000    ; unit speed, 1.0 in Q5.3 format
 ENGINE_FLAGS_HALTED EQU 0
 
-ENGINE_CHFLAGS_ROWEN1 EQU 0 ; bit 0: row enable (if set)
-ENGINE_CHFLAGS_ROWEN2 EQU 1
-ENGINE_CHFLAGS_ROWEN3 EQU 2
-ENGINE_CHFLAGS_ROWEN4 EQU 3
+ENGINE_CHFLAGS_ROWEN1   EQU 0 ; bit 0: CH1 row enable (if set)
+ENGINE_CHFLAGS_ROWEN2   EQU 1 ; bit 1: CH2 row enable (if set)
+ENGINE_CHFLAGS_ROWEN3   EQU 2 ; bit 2: CH3 row enable (if set)
+ENGINE_CHFLAGS_ROWEN4   EQU 3 ; bit 3: CH4 row enable (if set)
+ENGINE_CHFLAGS_LOCK1    EQU 4 ; bit 4: CH1 lock status
+ENGINE_CHFLAGS_LOCK2    EQU 5 ; bit 5: CH2 lock status
+ENGINE_CHFLAGS_LOCK3    EQU 6 ; bit 6: CH3 lock status
+ENGINE_CHFLAGS_LOCK4    EQU 7 ; bit 7: CH4 lock status
 
 ENGINE_DEFAULT_ENVELOPE EQU $F0
 
@@ -76,6 +80,8 @@ tbe_dDefaultChSettings:
     DB  $00, $00, $20, $00
     ; panning
     DB  $03, $03, $03, $03
+    ; frequency
+    DW $0000, $0000, $0000, $0000
 tbe_dDefaultChSettingsEnd:
 
 ;
@@ -374,30 +380,99 @@ ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
     pop     bc
     ret
 
-generate_templates: MACRO
+; generate_templates: MACRO
 
-_tbe_writeTimbre\1:
-IF \1 == 0
-    ld      c, rNR11 - $FF00
-ELIF \1 == 1
-    ld      c, rNR21 - $FF00
-ELIF \1 == 2
-    ld      c, rNR32 - $FF00
-ELSE
-    ld      c, rNR43 - $FF00
-    ld      d, a
-    ld      a, [c]
-    res     3, a
-    or      a, d
-ENDC
-    ld      [c], a
-    ret
-ENDM
+; _tbe_writeTimbre\1:
+;     ld      a, [tbe_wTimbre\1]
+; IF \1 == 1
+;     ld      [rNR11], a
+; ELIF \1 == 2
+;     ld      [rNR21], a
+; ELIF \1 == 3
+;     ld      [rNR32], a
+; ELSE
+;     ld      d, a
+;     ld      a, [rNR43]
+;     res     3, a
+;     or      a, d
+;     ld      [rNR43], a
+; ENDC
+;     ret
 
-    generate_templates 0
-    generate_templates 1
-    generate_templates 2
-    generate_templates 3
+; _tbe_writeEnvelope\1::
+; IF \1 == 3
+;     ; wave channel envelope is the waveform id
+;     ld      hl, tbe_waveTable           ; lookup the waveform
+;     ld      b, 0                        ; bc = wave id
+;     ld      c, a
+;     add     hl, bc                      ; offset table by id
+;     add     hl, bc
+;     ld      a, [hl+]                    ; get pointer at id
+;     ld      c, a
+;     ld      a, [hl]
+;     ld      h, a
+;     ld      l, c
+;     xor     a                           ; CH3 sound off
+;     ld      [rNR30], a
+
+;     ld      b, 16                       ; copy to wave ram
+;     ld      c, _AUD3WAVERAM - $FF00
+;     call    _tbe_iomemcpy
+
+;     ld      a, $80                      ; CH3 sound on
+;     ld      [rNR30], a
+; ELSE
+;     ld      [rNR\12], a
+; ENDC
+;     ret
+
+; _tbe_writePanning\1:
+;     ret
+
+; _tbe_writeRegisters\1:
+;     ld      a, [tbe_wRegStatus\1]       ; get our status
+;     or      a
+;     ret     z                           ; exit early if nothing to do
+;     ld      e, a                        ; keep the status in e
+;     bit     REGSTAT_TIMBRE, e           ; do we need to write timbre?
+;     jr      z, .timbre_done
+; .timbre_done:
+;     bit     REGSTAT_ENVELOPE, e
+;     jr      z, .envelope_done
+;     ld      a, [tbe_wTimbre\1]
+;     IF \1 == 1
+;         ld      [rNR11], a
+;     ELIF \1 == 2
+;         ld      [rNR21], a
+;     ELIF \1 == 3
+;         ld      [rNR32], a
+;     ELSE
+;         ld      d, a
+;         ld      a, [rNR43]
+;         res     3, a
+;         or      a, d
+;         ld      [rNR43], a
+;     ENDC
+; .envelope_done:
+;     bit     REGSTAT_PANNING, e
+;     jr      z, .panning_done
+; .panning_done:
+; .retrigger_done:
+;     bit     REGSTAT_ENVELOPE, e
+;     call    nz, _tbe_writeEnvelope\1
+;     bit     REGSTAT_PANNING, e
+;     call    nz, _tbe_writePanning\1
+
+
+;     ret
+
+; ENDM
+
+; ; template code generation for all channels
+;     generate_templates 1
+;     generate_templates 2
+;     generate_templates 3
+;     generate_templates 4
     
 
 ;

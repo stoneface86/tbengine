@@ -32,6 +32,21 @@ _tbe_memcpy:
     jr      nz, _tbe_memcpy
     ret
 
+; same as _tbe_memcpy but uses the ldio instruction
+; hl = source address
+; b = bytes to copy
+; c = destination ($FF00 + c)
+_tbe_iomemcpy:
+    ld      a, [hl+]
+    ld      [c], a
+    inc     c
+    dec     b
+    ld      a, b
+    or      a
+    jr      nz, _tbe_iomemcpy
+    ret
+
+
 ;
 ; Adds a signed byte to hl, the byte operand is placed into register bc and sign-extended
 ;
