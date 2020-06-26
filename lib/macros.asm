@@ -52,3 +52,35 @@ seeks: MACRO
         add     hl, de
     ENDC
 ENDM
+
+;
+; Jump table logic for b = channel id (0-3)
+; b is set to 0 on finish
+;
+chjumptable: MACRO
+; not actually a jump table
+; if-else-branch is actually faster and smaller than a jump table
+; branching: 5-11 cycles and 10 bytes
+; jumptable: 13 cycles and 16 bytes
+    inc     b                   ; set zero flag on b
+    dec     b
+    jr      z, .ch1             ; b = 0: CH1
+    dec     b
+    jr      z, .ch2             ; b = 1: CH2
+    dec     b
+    jr      z, .ch3             ; b = 2: CH3
+                                ; for b > 2: CH4
+
+; jumptable version
+;     ld      hl, .jumptable
+;     ld      b, 0
+;     add     hl, bc
+;     add     hl, bc
+;     jp      hl
+; .jumptable:
+;     jr      .ch1
+;     jr      .ch2
+;     jr      .ch3
+;     jr      .ch4
+;
+ENDM

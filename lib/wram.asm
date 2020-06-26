@@ -77,15 +77,6 @@ tbe_wChannelSettings:
 
 ; flags for determining which registers need updating
 
-; bit 0: write timbre
-; bit 1: write envelope
-; bit 2: write panning
-; bit 3: retrigger
-tbe_wRegStatus1:        DS 1
-tbe_wRegStatus2:        DS 1
-tbe_wRegStatus3:        DS 1
-tbe_wRegStatus4:        DS 1
-
 ; envelope settings for channels 1, 2 and 4
 ; for channel 3 the envelope is the waveform id
 tbe_wEnvelope1:         DS 1
@@ -93,10 +84,7 @@ tbe_wEnvelope2:         DS 1
 tbe_wEnvelope3:         DS 1
 tbe_wEnvelope4:         DS 1
 
-; ========================================================== Quad #5: $28 - $2F
-
 ; timbre for square is duty, wave volume for wave and step width for noise
-
 
 ; ch1 duty, $00, $40, $80, $C0 (12.5%, 25%, 50%, 75%)
 tbe_wTimbre1:           DS 1
@@ -107,12 +95,10 @@ tbe_wTimbre3:           DS 1
 ; ch4 step width $00, $08 (15-bit, 7-bit)
 tbe_wTimbre4:           DS 1
 
+; ========================================================== Quad #5: $28 - $2F
 
-; channel panning (0 = none, 1 = pan right, 2 = pan left, 3 = pan both)
-tbe_wPanning1:          DS 1
-tbe_wPanning2:          DS 1
-tbe_wPanning3:          DS 1
-tbe_wPanning4:          DS 1
+; music panning settings
+tbe_wPanning:           DS 1
 
 ; ========================================================== Quad #6: $30 - $37
 
@@ -124,6 +110,11 @@ tbe_wFreq4:             DS 2
 
 
 tbe_wChannelSettingsEnd:
+
+; bool to indicate if the current channel being processed is unlocked
+; Used by cmdFn's
+tbe_wCurrentChLocked:   DS 1
+
 
 ; END OF QUAD WORD ALIGNMENT
 

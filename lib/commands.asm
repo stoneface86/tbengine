@@ -91,7 +91,7 @@ _tbe_cmdFnVibrato:
 ; utility function to store envelope/timbre/panning settings in wram
 ; hl = pointer to setting
 ; b = channel id
-; on return hl points to wRegStatus for the channel id
+; OPTIMIZE: This might be worth converting to a macro
 ;
 _tbe_setChParam:
     ld      c, a                    ; save parameter into c
@@ -100,55 +100,61 @@ _tbe_setChParam:
     ld      l, a
     ld      a, c                    ; restore parameter
     ld      [hl], a                 ; store parameter into wram variable
-
-    ld      hl, tbe_wRegStatus1     ; update status
-    ld      a, l
-    add     a, b
-    ld      l, a                    ; hl now points to reg status variable
     ret
 
 _tbe_cmdFnSetEnvelope:
     ld      hl, tbe_wEnvelope1      ; load envelope variable
     call    _tbe_setChParam    
     ;set     1, [hl]                 ; set bit 1 to update envelope on next register write
-    ld      a, [hl]
-    or      REGSTAT_ENVELOPE | REGSTAT_RETRIGGER
-    ld      [hl], a
+    ;ld      a, [hl]
+    ;or      REGSTAT_ENVELOPE | REGSTAT_RETRIGGER
+    ;ld      [hl], a
+    ld      a, [tbe_wCurrentChLocked]
+    or      a
+    call    nz, _tbe_writeEnvelope
     cmd_ret
 
 _tbe_cmdFnSetTimbre:
     ld      hl, tbe_wTimbre1
     call    _tbe_setChParam
-    set     0, [hl]
+    ld      a, [tbe_wCurrentChLocked]
+    or      a
+    call    nz, _tbe_writeTimbre
+    
+    ;set     0, [hl]
     cmd_ret
 
+dPanningMasks:
+    DB $11
+    DB $22
+    DB $44
+    DB $88
+
 _tbe_cmdFnSetPanning:
-    ld      hl, tbe_wPanning1
-    call    _tbe_setChParam
-    set     2, [hl]
-
-;     ld      c, $EE                  ; bit mask to clear CH1's panning setting
-;     ld      e, b                    ; save b into e
-;     inc     b
-; .loop:
-;     dec     b
-;     jr      z, .loopend             ; stop when b == 0
-;     rlc     c                       ; rotate mask left
-;     rlca                            ; rotate new setting left
-;     jr      .loop
-; .loopend:
-;     ld      d, a
-;     ld      a, [tbe_wPanning]
-;     and     a, c
-;     or      a, d
-;     ld      [tbe_wPanning], a
-
-;     ld      hl, tbe_wRegStatus1
-;     ld      a, l
-;     add     a, e
-;     ld      l, a
-;     set     2, [hl]
-;     ld      b, e
+    chjumptable
+.ch4:
+    rrca
+    ld      b, $77
+    jr      .updatePanning
+.ch3:
+    rrca
+    rrca
+    ld      b, $BB
+    jr      .updatePanning
+.ch2:
+    rlca
+    ld      b, $DD
+    jr      .updatePanning
+.ch1:
+    ld      b, $EE
+.updatePanning:
+    ; a = new panning setting for channel
+    ; b = mask
+    ld      c, a
+    ld      a, [tbe_wPanning]
+    and     a, b
+    or      a, c
+    ld      [tbe_wPanning], a
     cmd_ret
 
 _tbe_cmdFnInstrumentSet:

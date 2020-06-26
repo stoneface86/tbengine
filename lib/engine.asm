@@ -46,6 +46,15 @@ updateRowCounter: MACRO
 .endRowCounter\1:
 ENDM
 
+parseRow: MACRO
+    ld      a, 1 << (3 + \1)                ; channel lock mask
+    and     c                               ; and with flags
+    ld      [tbe_wCurrentChLocked], a       ; store in the variable for later use
+    bit     (\1 - 1), c
+    call    nz, _tbe_parseRow
+    inc     b
+ENDM
+
 tbe_begin:
 tbe_init::
     push    bc
@@ -72,14 +81,12 @@ tbe_init::
     ret
 
 tbe_dDefaultChSettings:
-    ; status
-    DB  $0F, $0F, $0F, $0F
     ; envelope
     DB  $F0, $F0, $00, $F0
     ; timbre
     DB  $00, $00, $20, $00
     ; panning
-    DB  $03, $03, $03, $03
+    DB  $FF
     ; frequency
     DW $0000, $0000, $0000, $0000
 tbe_dDefaultChSettingsEnd:
@@ -227,17 +234,21 @@ tbe_update::
     ld      a, [tbe_wChflags]
     ld      c, a
     ld      b, 0
-    bit     ENGINE_CHFLAGS_ROWEN1, c
-    call    nz, _tbe_parseRow
-    inc     b
-    bit     ENGINE_CHFLAGS_ROWEN2, c
-    call    nz, _tbe_parseRow
-    inc     b
-    bit     ENGINE_CHFLAGS_ROWEN3, c
-    call    nz, _tbe_parseRow
-    inc     b
-    bit     ENGINE_CHFLAGS_ROWEN4, c
-    call    nz, _tbe_parseRow
+    parseRow 1
+    parseRow 2
+    parseRow 3
+    parseRow 4
+    ; bit     ENGINE_CHFLAGS_ROWEN1, c
+    ; call    nz, _tbe_parseRow
+    ; inc     b
+    ; bit     ENGINE_CHFLAGS_ROWEN2, c
+    ; call    nz, _tbe_parseRow
+    ; inc     b
+    ; bit     ENGINE_CHFLAGS_ROWEN3, c
+    ; call    nz, _tbe_parseRow
+    ; inc     b
+    ; bit     ENGINE_CHFLAGS_ROWEN4, c
+    ; call    nz, _tbe_parseRow
     ld      a, c
     and     a, $F0                          ; reset all rowen flags
     ld      [tbe_wChflags], a
