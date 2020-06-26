@@ -89,92 +89,17 @@ Start:
     ; enable interrupts
 	ei
 
-    ld a, $80
-    ld [rNR52], a   ; sound on
-    ld a, $11
-    ld [rNR51], a   ; enable both terminals for CH1
-    ld a, $FF
-    ld [rNR50], a   ; both terminals on at max volume
-
-    ld a, $80
-    ld [rNR11], a   ; Duty = 02 (50%)
-    ld a, $FF
-    ld [rNR12], a   ; envelope = constant volume F
-    ;ld a, $04
-    ;ld [rNR14], a   ; start playing sound
-
-    ; ld hl, FreqControl1
-    ; call fc_reset
+    call    tbe_init
     
-    ; ld hl, FreqControl1
-    ; ld a, $47
-    ; call fc_setVibrato
-
-    ; ld hl, FreqControl1 + 4 ; hack, explicitly set frequency
-    ; ld a, $7
-    ; ld [hl], a
-
-    ; ld      hl, FreqControl1
-    ; call    tbe_init
-    
-    ; ld      hl, sampleSong
-    ; call    tbe_playSong
+    ld      hl, sampleSong
+    call    tbe_playSong
 
     call    joypad_init
 
 .gameloop
     call    WaitVBlank
 
-    ; vibrato example, (demo purposes only, will be moved to library)
-    ; this is what effect 441 will sound like
-    ;call    tbe_update
-
-    call    joypad_read
-
-    ld      a, [wJoypadPressed]
-    ld      b, a
-    bit     4, a
-    jr      nz, .nopress
-    ld      a, $F0
-    ld      [rNR12], a
-    jr      .retrigger
-.nopress:
-    ld      a, [wJoypadReleased]
-    bit     4, a
-    jr      nz, .norelease
-    ld      a, $F1
-    ld      [rNR12], a
-.retrigger:
-    ld      a, $83
-    ld      [rNR14], a
-.norelease:
-
-    bit     1, b
-    jr      nz, .noleftpress
-    ; left pressed, decrease duty
-    ld      a, [rNR11]
-    sub     a, %01000000
-    ;and     a, $C0
-    ld      [rNR11], a
-    jr      .done
-.noleftpress:
-    bit     0, b
-    jr      nz, .done
-    ; right pressed, increase duty
-    ld      a, [rNR11]
-    add     a, %01000000
-    ;and     a, $C0
-    ld      [rNR11], a
-.done:
-
-
-    ; call    fc_step
-
-    ; call    fc_frequency
-    ; ld      a, c            ; set the new frequency
-    ; ld      [rNR13], a
-    ; ld      a, b
-    ; ld      [rNR14], a
+    call    tbe_update
 
     jr      .gameloop
 
