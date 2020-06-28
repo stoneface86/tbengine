@@ -43,7 +43,8 @@ _tbe_cmdFnHalt:
     ld      h, a                        ; hl = sp
     ld      l, e
     ld      sp, hl                      ; update sp
-    jp      tbe_update.exit             ; go to end of tbe_update
+    ret
+    ;jp      tbe_update.exit             ; go to end of tbe_update
 
 _tbe_cmdFnTempo:
     ; parameter 1, a - new speed to set

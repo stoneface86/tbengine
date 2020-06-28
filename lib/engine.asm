@@ -11,6 +11,9 @@ INCLUDE "hardware.inc"
 UNIT_SPEED EQU %00001000    ; unit speed, 1.0 in Q5.3 format
 ENGINE_FLAGS_HALTED EQU 0
 
+; chflags bit fields
+; rowen means that a new row from music data is to be parsed
+; if a channel is locked, music will not play on it
 ENGINE_CHFLAGS_ROWEN1   EQU 0 ; bit 0: CH1 row enable (if set)
 ENGINE_CHFLAGS_ROWEN2   EQU 1 ; bit 1: CH2 row enable (if set)
 ENGINE_CHFLAGS_ROWEN3   EQU 2 ; bit 2: CH3 row enable (if set)
@@ -22,6 +25,7 @@ ENGINE_CHFLAGS_LOCK4    EQU 7 ; bit 7: CH4 lock status
 
 ENGINE_DEFAULT_ENVELOPE EQU $F0
 
+; pattern commands, applied at the start of a new row (timer active)
 PATTERN_CMD_NONE EQU 0
 PATTERN_CMD_SKIP EQU 1
 PATTERN_CMD_JUMP EQU 2
@@ -31,20 +35,6 @@ SongHeader_speed        RB 1
 SongHeader_patterns     RB 1
 SongHeader_order        RW 1
 SongHeader_SIZEOF       RB 0
-
-updateRowCounter: MACRO
-    ld      a, [tbe_wRowCounter\1]          ; get the row counter for the channel
-    or      a                               ; set zero flag
-    jr      nz, .decrementRowCounter\1
-    ld      a, [tbe_wChflags]               ; get the channel flags
-    set     \1 - 1, a                       ; set new row for the channel
-    ld      [tbe_wChflags], a               ; store it back
-    jr      .endRowCounter\1
-.decrementRowCounter\1:
-    dec     a
-    ld      [tbe_wRowCounter\1], a          ; store the counter
-.endRowCounter\1:
-ENDM
 
 parseRow: MACRO
     ld      a, 1 << (3 + \1)                ; channel lock mask
@@ -109,6 +99,52 @@ _tbe_reset_channels:
     pop     bc
     ret
 
+;
+; Lock a channel for access to sound registers. The engine will no longer
+; update registers for the specified channel.
+;
+tbe_lockChannel::
+    ld      a, [tbe_wChflags]
+    chjumptable
+.ch4:
+    set     ENGINE_CHFLAGS_LOCK4, a
+    ld      b, $77
+    ld      c, rNR41 - $FF00 - 1
+    jr      .clearchannels
+.ch3:
+    set     ENGINE_CHFLAGS_LOCK3, a
+    ld      b, $BB
+    ld      c, rNR30 - $FF00
+    jr      .clearchannels
+.ch2:
+    set     ENGINE_CHFLAGS_LOCK2, a
+    ld      b, $DD
+    ld      c, rNR21 - $FF00 - 1
+    jr      .clearchannels
+.ch1:
+    set     ENGINE_CHFLAGS_LOCK1, a
+    ld      b, $EE
+    ld      c, rNR10 - $FF00
+.clearchannels:
+    ld      [tbe_wChflags], a
+    ld      a, [rNR51]
+    and     a, b
+    ld      [rNR51], a
+    xor     a
+    ld      b, 4
+.loop:
+    ld      [c], a
+    inc     c
+    dec     b
+    jr      nz, .loop
+    ld      a, $80
+    ld      [c], a
+    
+    ret
+
+tbe_unlockChannel::
+    ret
+
 
 ;
 ; Prepares the engine to play a song from the given pointer
@@ -142,6 +178,8 @@ tbe_playSong::
 tbe_playSfx::
     ret
 
+; NOTE: the engine does not error check music data, attempting to play
+; incorrect music data may result in undefined behavior
 
 tbe_update::
     ld      a, [tbe_wStatus]
@@ -153,9 +191,10 @@ tbe_update::
     ld      a, [tbe_wTimer]                 ; check if timer is active (timer < UNIT_SPEED)
     and     a, %11111000
     jp      nz, .timerNotActive
-    ; timer is active (start of new row)
+
+; TIMER ACTIVE ---- (start of new row) ----------------------------------------
+
     ; apply the pattern effect (jump/skip)
-    ; start the
     ld      a, [tbe_wPatternCommand]
     xor     a, PATTERN_CMD_JUMP             ; check if a == PATTERN_CMD_JUMP
     jr      nz, .skipCmd
@@ -164,8 +203,7 @@ tbe_update::
     ld      c, a
     ld      a, [tbe_wOrderTable + 1]
     ld      b, a
-    ; should we error check? buffer overrun will occur if patternParam > orderCount
-    ; nah, but if error just halt
+    ; NOTE: buffer overrun will occur if patternParam > orderCount
     ld      a, [tbe_wPatternParam]
     ld      [tbe_wOrderCounter], a
     ; an order is 4 pointers or 8 bytes, so we need to multiply patternParam by 8
@@ -238,49 +276,55 @@ tbe_update::
     parseRow 2
     parseRow 3
     parseRow 4
-    ; bit     ENGINE_CHFLAGS_ROWEN1, c
-    ; call    nz, _tbe_parseRow
-    ; inc     b
-    ; bit     ENGINE_CHFLAGS_ROWEN2, c
-    ; call    nz, _tbe_parseRow
-    ; inc     b
-    ; bit     ENGINE_CHFLAGS_ROWEN3, c
-    ; call    nz, _tbe_parseRow
-    ; inc     b
-    ; bit     ENGINE_CHFLAGS_ROWEN4, c
-    ; call    nz, _tbe_parseRow
     ld      a, c
     and     a, $F0                          ; reset all rowen flags
     ld      [tbe_wChflags], a
 
 .timerNotActive:
 
+; UPDATE CHANNELS -------------------------------------------------------------
+
+    ; TODO channel update logic
+
+; UPDATE TIMER ----------------------------------------------------------------
     ld      a, [tbe_wTimerPeriod]           ; b = timerPeriod
     ld      b, a
     ld      a, [tbe_wTimer]                 ; a = timer
     add     a, UNIT_SPEED                   ; increment the timer
-    ld      c, a                            ; save if timer does not overflow
-    sub     a, b                            ; timer -= timerPeriod
-    jr      c, .incrementTimer              ; the timer overflowed if z or nc
-    jr      .updateTimer
-.incrementTimer:
-    ld      a, c
-.updateTimer:
-    ld      [tbe_wTimer], a                 ; update timer
-    ; if we didn't overflow, we need to decrement the row counters
-    jr      c, .exit
+
+    cp      a, b                            ; check if timer >= timerPeriod
+    jr      c, .noOverflow
+; TIMER OVERFLOW ---- (end of row) --------------------------------------------
+    sub     a, b                            ; timer overflow, subtract period
+    ld      [tbe_wTimer], a                 ; store into timer
 
     ; since timer >= timerPeriod, we have finished a row (timer overflowed)
-    ; update all counters
-    updateRowCounter 1
-    updateRowCounter 2
-    updateRowCounter 3
-    updateRowCounter 4
+    ; update row counters
+    ld      hl, tbe_wRowCounter4            ; start with CH4
+    ld      b, 4                            ; loop counter
+    ld      c, 1 << ENGINE_CHFLAGS_ROWEN4   ; bit mask for chflags
+.loopRowCounter:
+    ld      a, [hl]                         ; get the row counter for the channel
+    or      a                               ; set zero flag
+    jr      nz, .decrementRowCounter
+    ld      a, [tbe_wChflags]               ; get the channel flags
+    or      a, c                            ; set new row for the channel
+    ld      [tbe_wChflags], a               ; store it back
+    jr      .endRowCounter
+.decrementRowCounter:
+    dec     a
+    ld      [hl], a                         ; store the counter
+.endRowCounter:
+    rrc     c                               ; decrement mask
+    dec     l                               ; decrement pointer
+    dec     b                               ; decrement counter
+    jr      nz, .loopRowCounter
 
+    ; update pattern counter
     ld      a, [tbe_wPatternCounter]            ; check if patternCounter == 0
     or      a
     jr      nz, .decrementPatternCounter
-    ; pattern ended, load next one in the order
+    ; pattern ended, load next one in the order unless a goto/skip is already scheduled
     ld      a, [tbe_wPatternCommand]            ; check if patternCommand == 0 (no command set)
     or      a
     jr      nz, .reloadPatternCounter
@@ -295,8 +339,10 @@ tbe_update::
     dec     a
 .writePatternCounter:
     ld      [tbe_wPatternCounter], a
-    
-.exit:
+    ret
+.noOverflow:
+    ; the timer didn't overflow so we are still in the current row
+    ld      [tbe_wTimer], a
     ret
 
 
@@ -309,7 +355,7 @@ _tbe_parseRow:
     push    de
     ld      hl, tbe_wCh1Ptr         ; hl = channel pointer
     ld      a, b                    ; offset hl by channel id * 2
-    rla
+    rlca
     add     a, l
     ld      l, a
     push    hl
@@ -390,126 +436,6 @@ ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
     pop     de
     pop     bc
     ret
-
-; generate_templates: MACRO
-
-; _tbe_writeTimbre\1:
-;     ld      a, [tbe_wTimbre\1]
-; IF \1 == 1
-;     ld      [rNR11], a
-; ELIF \1 == 2
-;     ld      [rNR21], a
-; ELIF \1 == 3
-;     ld      [rNR32], a
-; ELSE
-;     ld      d, a
-;     ld      a, [rNR43]
-;     res     3, a
-;     or      a, d
-;     ld      [rNR43], a
-; ENDC
-;     ret
-
-; _tbe_writeEnvelope\1::
-; IF \1 == 3
-;     ; wave channel envelope is the waveform id
-;     ld      hl, tbe_waveTable           ; lookup the waveform
-;     ld      b, 0                        ; bc = wave id
-;     ld      c, a
-;     add     hl, bc                      ; offset table by id
-;     add     hl, bc
-;     ld      a, [hl+]                    ; get pointer at id
-;     ld      c, a
-;     ld      a, [hl]
-;     ld      h, a
-;     ld      l, c
-;     xor     a                           ; CH3 sound off
-;     ld      [rNR30], a
-
-;     ld      b, 16                       ; copy to wave ram
-;     ld      c, _AUD3WAVERAM - $FF00
-;     call    _tbe_iomemcpy
-
-;     ld      a, $80                      ; CH3 sound on
-;     ld      [rNR30], a
-; ELSE
-;     ld      [rNR\12], a
-; ENDC
-;     ret
-
-; _tbe_writePanning\1:
-;     ret
-
-; _tbe_writeRegisters\1:
-;     ld      a, [tbe_wRegStatus\1]       ; get our status
-;     or      a
-;     ret     z                           ; exit early if nothing to do
-;     ld      e, a                        ; keep the status in e
-;     bit     REGSTAT_TIMBRE, e           ; do we need to write timbre?
-;     jr      z, .timbre_done
-; .timbre_done:
-;     bit     REGSTAT_ENVELOPE, e
-;     jr      z, .envelope_done
-;     ld      a, [tbe_wTimbre\1]
-;     IF \1 == 1
-;         ld      [rNR11], a
-;     ELIF \1 == 2
-;         ld      [rNR21], a
-;     ELIF \1 == 3
-;         ld      [rNR32], a
-;     ELSE
-;         ld      d, a
-;         ld      a, [rNR43]
-;         res     3, a
-;         or      a, d
-;         ld      [rNR43], a
-;     ENDC
-; .envelope_done:
-;     bit     REGSTAT_PANNING, e
-;     jr      z, .panning_done
-; .panning_done:
-; .retrigger_done:
-;     bit     REGSTAT_ENVELOPE, e
-;     call    nz, _tbe_writeEnvelope\1
-;     bit     REGSTAT_PANNING, e
-;     call    nz, _tbe_writePanning\1
-
-
-;     ret
-
-; ENDM
-
-; ; template code generation for all channels
-;     generate_templates 1
-;     generate_templates 2
-;     generate_templates 3
-;     generate_templates 4
-    
-
-;
-; a - timbre to write
-; b - channel id
-;
-; _tbe_writeTimbre:
-
-; .ch1:
-;     ld      c, rNR11 - $FF00
-;     jr      .write
-; .ch2:
-;     ld      c, rNR21 - $FF00
-;     jr      .write
-; .ch3:
-;     ld      c, rNR32 - $FF00
-;     jr      .write
-; .ch4:
-;     ld      c, rNR43 - $FF00
-;     ld      d, a
-;     ld      a, [c]
-;     res     3, a
-;     or      a, d
-; .write:
-;     ld      [c], a
-;     ret
 
 ;
 ; Adjusts row counters and channel pointers to start playing at a given row. The
