@@ -32,10 +32,38 @@ The only dependency for this library is hardware.inc, so make sure it is in your
 
 You can load the library to either ROM0 or ROMX. Default is ROMX. To load to ROM0, define TBE_ROM0 when assembling.
 
+# Usage
+
+Always initialize the library first with `tbe_init`
+```asm
+    call    tbe_init
+```
+
+Then you can begin playing a song by calling `tbe_playSong`
+```asm
+    ld      hl, samplesong
+    call    tbe_playSong
+```
+
+Finally, call `tbe_update` once every vblank to update the sound registers
+```asm
+gameloop:
+    call    wait_vblank
+
+    ; your game logic
+
+    call    tbe_update
+    jr      gameloop
+```
+
+If desired, the timer can be used instead of vblank for updating music. Keep in
+mind that tempo/speed will depend on the framerate you set. For vblank this is
+always ~59.7 fps.
+
 # Contributing
 
-Any contributions are welcomed at this point in time. Feel free to contact me on discord,
-my tag is stoneface#7646.
+Any contributions are welcomed at this point in time. Submit a pull request or
+feel free to contact me on discord, my tag is stoneface#7646.
 
 # Versioning
 
