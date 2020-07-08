@@ -9,6 +9,7 @@ tbe_waveTable::
     DW wave_square
     DW wave_saw
     DW wave_curved
+    DW wave_pkmn5
 
 wave_triangle:
     DB $01, $23, $45, $67, $89, $AB, $CD, $EF, $FE, $DC, $BA, $98, $76, $54, $32, $10
@@ -23,6 +24,9 @@ wave_saw:
 
 wave_curved:
     DB $02, $46, $8A, $CE, $EF, $FF, $FE, $EE, $DD, $CB, $A9, $87, $65, $43, $22, $11
+
+wave_pkmn5:
+    DB $00, $11, $22, $33, $44, $33, $22, $11, $FF, $EE, $CC, $AA, $88, $AA, $CC, $EE
 
 sampleSong::
     DB $30              ; speed (6.0 frames per row, 150 BPM)
@@ -108,6 +112,8 @@ sampleSong_ch2_track0:
 sampleSong_ch3_track0:
     tbe_duration 1
     tbe_pitchSlideDown $10
+    tbe_setEnvelope $00
+    tbe_setTimbre $20
     tbe_note G#5                ; row 0x00
 
     tbe_instrumentSet 0
@@ -122,7 +128,7 @@ sampleSong_ch3_track0:
     tbe_note G#5                ; row 0x04
     
     tbe_pitchSlideDown $0F
-    tbe_duration 24
+    tbe_duration 2
     tbe_note F_5                ; row 0x05
 
     tbe_duration 1

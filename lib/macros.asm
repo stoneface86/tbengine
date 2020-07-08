@@ -84,3 +84,78 @@ chjumptable: MACRO
 ;     jr      .ch4
 ;
 ENDM
+
+
+;
+; Retrigger a channel whilst keeping frequency data unchanged
+; For CH3 you should disable/enable NR30 before invoking this macro!
+; \1: channel id (1-4)
+;
+retrigger: MACRO
+IF \1 == 4
+    ld      a, $80
+ELSE
+    ld      a, [tbe_wFreq\1 + 1]    ; current frequency (upper bits)
+    set     7, a                    ; set bit 7 to restart channel
+ENDC
+    ld      [rNR\14], a
+ENDM
+
+;
+; Write envelope setting for a channel, channel is retriggered
+; \1: channel id (1-4)
+;
+writeEnvelope: MACRO
+
+IF \1 == 3
+    call    _tbe_writeWave
+ELSE
+    ld      [rNR\12], a
+ENDC
+    retrigger \1
+
+ENDM
+
+;
+; Writes timbre setting for a channel
+; \1: channel id (1-4)
+;
+writeTimbre: MACRO
+IF \1 == 1 || \1 == 2
+    ld      [rNR\11], a
+ELIF \1 == 3
+    ld      [rNR32], a
+ELSE
+    ld      d, a            ; d = timbre
+    ld      a, [rNR43]      ; get current setting
+    res     3, a            ; reset bit 3 (step-width)
+    or      a, d            ; or with timbre
+    ld      [rNR43], a      ; write back
+ENDC
+ENDM
+
+;
+; Reload a channel with music settings
+;
+reload: MACRO
+
+    ; low frequency
+IF \1 == 4
+    ld      a, [tbe_wTimbre4]
+    ld      b, a
+ENDC
+    ld      a, [tbe_wFreq\1]
+IF \1 == 4
+    or      a, b
+ENDC
+    ld      [rNR\13], a
+
+IF \1 != 4
+    ld      a, [tbe_wTimbre\1]
+    writeTimbre \1
+ENDC
+    ld      a, [tbe_wEnvelope\1]
+    writeEnvelope \1
+
+    ; TODO panning
+ENDM

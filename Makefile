@@ -58,6 +58,7 @@ LIB_SRC := lib/info.asm \
            lib/engine.asm \
 		   lib/commands.asm \
 		   lib/frequency.asm \
+		   lib/registers.asm \
            lib/tables.asm \
 		   lib/utils.asm \
 		   lib/wram.asm
@@ -77,6 +78,8 @@ LIB_OBJ_FILES := lib/all.obj
 OBJ_FILES := demo/main.obj \
              demo/joypad.obj \
              demo/samplesong.obj \
+			 demo/nationalpark.obj \
+			 demo/rushingheart.obj \
              $(LIB_OBJ_FILES)
 OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))
 

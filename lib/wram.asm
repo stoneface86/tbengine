@@ -33,6 +33,11 @@ tbe_wRowDuration4:      DS 1
 ; ========================================================== Quad #2: $10 - $17
 
 tbe_wStatus:            DS 1
+
+; timer values are in Q5.3 format
+; when timer is < 1.0 (unit speed), timer is "active"
+; when timer >= timerPeriod, timer has "overflowed"
+; an active timer is the start of a row, whereas overflow is the end of a row
 tbe_wTimer:             DS 1        ; current timer value
 tbe_wTimerPeriod:       DS 1        ; number of frames per row in Q5.3 format
 
@@ -97,10 +102,29 @@ tbe_wTimbre4:           DS 1
 
 ; ========================================================== Quad #5: $28 - $2F
 
-; music panning settings
-tbe_wPanning:           DS 1
+tbe_wNoteControl1:      DS 1
+tbe_wNoteControl2:      DS 1
+tbe_wNoteControl3:      DS 1
+tbe_wNoteControl4:      DS 1
+
+tbe_wNote1:             DS 1
+tbe_wNote2:             DS 1
+tbe_wNote3:             DS 1
+tbe_wNote4:             DS 1
 
 ; ========================================================== Quad #6: $30 - $37
+
+tbe_wNoteCounter1:      DS 1
+tbe_wNoteCounter2:      DS 1
+tbe_wNoteCounter3:      DS 1
+tbe_wNoteCounter4:      DS 1
+
+tbe_wCutCounter1:       DS 1
+tbe_wCutCounter2:       DS 1
+tbe_wCutCounter3:       DS 1
+tbe_wCutCounter4:       DS 1
+
+; ========================================================== Quad #7: $38 - $3F
 
 tbe_wFreq1:             DS 2
 tbe_wFreq2:             DS 2
@@ -108,6 +132,11 @@ tbe_wFreq3:             DS 2
 ; noise channel frequency is just NR43 with bit 4 reset
 tbe_wFreq4:             DS 2
 
+; ========================================================== Quad #8: $40 - $47
+
+; music panning settings
+tbe_wPanning:           DS 1
+tbe_wPanningMask:       DS 1
 
 tbe_wChannelSettingsEnd:
 

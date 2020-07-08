@@ -183,14 +183,32 @@ ENDM
 ; Command Macros
 ; useful for hand-writing music data
 
+
+_DURATION_COUNTER SET 0
+_DURATION SET 1
+
+
+_pattern_check_reset: MACRO
+_DURATION_COUNTER SET 0
+_DURATION SET 1
+ENDM
+
+_pattern_check: MACRO
+STATIC_ASSERT WARN, _DURATION_COUNTER == \1, "track length incorrect, {d:_DURATION_COUNTER} != {d:\1}"
+    _pattern_check_reset
+ENDM
+
+
 tbe_note: MACRO
     STATIC_ASSERT FATAL, \1 <= NOTE_LAST, "illegal note index"
     DB \1
+_DURATION_COUNTER SET _DURATION_COUNTER + _DURATION
 ENDM
 
 tbe_duration: MACRO
     STATIC_ASSERT FATAL, (\1) >= 1 && (\1) <= 64, "duration must be between 1 and 64 rows"
     DB $C0 | (\1 - 1)
+_DURATION SET \1
 ENDM
 
 ; tbe_goto <orderNo>

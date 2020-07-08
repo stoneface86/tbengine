@@ -91,13 +91,22 @@ Start:
 
     call    tbe_init
     
-    ld      hl, sampleSong
+    ld      hl, song_rushingheart
+    ;ld      hl, song_natpark
     call    tbe_playSong
 
     call    joypad_init
 
 .gameloop
     call    WaitVBlank
+
+    ld      a, [rSCX]
+    dec     a
+    ld      [rSCX], a
+
+    ld      a, [rSCY]
+    dec     a
+    ld      [rSCY], a
 
     call    tbe_update
 

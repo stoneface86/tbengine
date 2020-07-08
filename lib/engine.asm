@@ -7,23 +7,37 @@ SECTION "tbengine", ROMX
 ENDC
 
 INCLUDE "hardware.inc"
+INCLUDE "tbengine.inc"
 
 UNIT_SPEED EQU %00001000    ; unit speed, 1.0 in Q5.3 format
 ENGINE_FLAGS_HALTED EQU 0
+ENGINE_FLAGS_PANNING EQU 1  ; if set, update music panning
 
 ; chflags bit fields
 ; rowen means that a new row from music data is to be parsed
 ; if a channel is locked, music will not play on it
-ENGINE_CHFLAGS_ROWEN1   EQU 0 ; bit 0: CH1 row enable (if set)
-ENGINE_CHFLAGS_ROWEN2   EQU 1 ; bit 1: CH2 row enable (if set)
-ENGINE_CHFLAGS_ROWEN3   EQU 2 ; bit 2: CH3 row enable (if set)
-ENGINE_CHFLAGS_ROWEN4   EQU 3 ; bit 3: CH4 row enable (if set)
-ENGINE_CHFLAGS_LOCK1    EQU 4 ; bit 4: CH1 lock status
-ENGINE_CHFLAGS_LOCK2    EQU 5 ; bit 5: CH2 lock status
-ENGINE_CHFLAGS_LOCK3    EQU 6 ; bit 6: CH3 lock status
-ENGINE_CHFLAGS_LOCK4    EQU 7 ; bit 7: CH4 lock status
+ENGINE_CHFLAGS_ROWEN1   EQU 0   ; bit 0: CH1 row enable (if set)
+ENGINE_CHFLAGS_ROWEN2   EQU 1   ; bit 1: CH2 row enable (if set)
+ENGINE_CHFLAGS_ROWEN3   EQU 2   ; bit 2: CH3 row enable (if set)
+ENGINE_CHFLAGS_ROWEN4   EQU 3   ; bit 3: CH4 row enable (if set)
+ENGINE_CHFLAGS_LOCK1    EQU 4   ; bit 4: CH1 lock status
+ENGINE_CHFLAGS_LOCK2    EQU 5   ; bit 5: CH2 lock status
+ENGINE_CHFLAGS_LOCK3    EQU 6   ; bit 6: CH3 lock status
+ENGINE_CHFLAGS_LOCK4    EQU 7   ; bit 7: CH4 lock status
 
 ENGINE_DEFAULT_ENVELOPE EQU $F0
+
+; NoteControl (NC) flags
+ENGINE_NC_CUT       EQU 0   ; cut enable
+ENGINE_NC_NOTE      EQU 1   ; note trigger enable
+ENGINE_NC_PLAYING   EQU 2   ; playing status
+ENGINE_NC_AREN      EQU 3   ; AREN: Auto Retrigger ENable
+ENGINE_NC_TRIGGER   EQU 4   ; if set, retrigger channel
+
+; channel retriggers when:
+; * note triggers when the envelope is decreasing/increasing
+; * the envelope is changed
+; * the sweep register is set (CH1 only)
 
 ; pattern commands, applied at the start of a new row (timer active)
 PATTERN_CMD_NONE EQU 0
@@ -45,7 +59,36 @@ parseRow: MACRO
     inc     b
 ENDM
 
+updateFreq: MACRO
+    ld      a, [tbe_wNoteControl\1]
+    bit     ENGINE_NC_PLAYING, a
+    jr      z, .updateFreqEnd\1             ; do nothing if we aren't playing
+    ld      d, 0
+    bit     ENGINE_NC_TRIGGER, a            ; retrigger?
+    jr      z, .notrigger\1
+    ld      d, $80                          ; yes, d = $80
+    res     ENGINE_NC_TRIGGER, a            ; reset trigger flag
+    ld      [tbe_wNoteControl\1], a
+.notrigger\1:
+    ld      hl, tbe_wFreq\1                 ; hl = channel frequency variable
+    ld      a, [hl+]                        ; write lower frequency bits
+    ld      [rNR\13], a
+    ld      a, [hl]
+    or      a, d                            ; add retrigger bit
+    ld      [rNR\14], a                     ; write upper frequency bits    
+.updateFreqEnd\1
+ENDM
+
+; =========================================================================== ;
+; Exported Routines                                                           ;
+; =========================================================================== ;
+
 tbe_begin:
+
+tbe_thumbprint:
+    DB "tbengine - sound driver by stoneface"
+; TODO put version info here as well
+
 tbe_init::
     push    bc
     push    hl
@@ -53,7 +96,7 @@ tbe_init::
     ld      bc, tbe_wWramEnd - tbe_wWramBegin
     ld      hl, tbe_wWramBegin
     xor     a
-    call    _tbe_memset
+    call    _tbe_memset                     ; zero all wram variables
 
     ; init sound regs
     ld      a, $80
@@ -71,14 +114,19 @@ tbe_init::
     ret
 
 tbe_dDefaultChSettings:
-    ; envelope
-    DB  $F0, $F0, $00, $F0
-    ; timbre
-    DB  $00, $00, $20, $00
-    ; panning
-    DB  $FF
+    ;   CH1  CH2  CH3  CH4  ; setting
+    ; ----------------------;-------------
+    DB  $F0, $F0, $00, $F0  ; Envelope
+    DB  $00, $00, $20, $00  ; Timbre
+    DB  $00, $00, $00, $00  ; NoteControl
+    DB  $00, $00, $00, $00  ; Note
+    DB  $00, $00, $00, $00  ; NoteCounter
+    DB  $00, $00, $00, $00  ; CutCounter
     ; frequency
-    DW $0000, $0000, $0000, $0000
+    DW  $0000, $0000, $0000, $0000
+    ; panning
+    DB  $FF, $00
+    
 tbe_dDefaultChSettingsEnd:
 
 ;
@@ -94,16 +142,58 @@ _tbe_reset_channels:
     ld      de, tbe_wChannelSettings
     call    _tbe_memcpy
 
+    ; for each locked channel, re-write settings
+    ld      a, [tbe_wChflags]
+    ld      e, a
+    bit     ENGINE_CHFLAGS_LOCK1, e
+    call    z, _tbe_reloadChannel.ch1
+    bit     ENGINE_CHFLAGS_LOCK2, e
+    call    z, _tbe_reloadChannel.ch2
+    bit     ENGINE_CHFLAGS_LOCK3, e
+    call    z, _tbe_reloadChannel.ch3
+    bit     ENGINE_CHFLAGS_LOCK4, e
+    call    z, _tbe_reloadChannel.ch4
+
     pop     hl
     pop     de
     pop     bc
     ret
 
 ;
-; Lock a channel for access to sound registers. The engine will no longer
-; update registers for the specified channel.
+; Reloads a channel with the current music settings
+;
+_tbe_reloadChannel:
+    ;chjumptable
+.ch4:
+    reload 4
+    ret
+.ch3:
+    reload 3
+    ret
+.ch2:
+    reload 2
+    ret
+.ch1:
+    reload 1
+    ret
+
+;
+; Force lock a channel. Music will resume playing on this channel. Sound
+; registers are reloaded with music settings. If a sound effect was playing on
+; this channel, it is stopped. (sound effects automatically lock their channel
+; on finish). This routine does nothing if the channel is already locked.
 ;
 tbe_lockChannel::
+    ret
+
+;
+; Unlock a channel for access to sound registers. The engine will no longer
+; update registers for the specified channel when playing music. Warning: using
+; this routine does not enforce exclusive access, as the current song is able to
+; lock/schedule a sound effect. If you require exclusive access, make sure the
+; current song will not lock/unlock the channel (sfx and sfxStop commands)
+;
+tbe_unlockChannel::
     ld      a, [tbe_wChflags]
     chjumptable
 .ch4:
@@ -142,12 +232,10 @@ tbe_lockChannel::
     
     ret
 
-tbe_unlockChannel::
-    ret
-
 
 ;
 ; Prepares the engine to play a song from the given pointer
+; TODO: rewrite using a song id parameter instead of pointer
 ;
 tbe_playSong::
     push    hl
@@ -196,74 +284,29 @@ tbe_update::
 
     ; apply the pattern effect (jump/skip)
     ld      a, [tbe_wPatternCommand]
-    xor     a, PATTERN_CMD_JUMP             ; check if a == PATTERN_CMD_JUMP
+    cp      a, PATTERN_CMD_JUMP             ; check if a == PATTERN_CMD_JUMP
     jr      nz, .skipCmd
     ; jump command
-    ld      a, [tbe_wOrderTable]
-    ld      c, a
-    ld      a, [tbe_wOrderTable + 1]
-    ld      b, a
-    ; NOTE: buffer overrun will occur if patternParam > orderCount
     ld      a, [tbe_wPatternParam]
-    ld      [tbe_wOrderCounter], a
-    ; an order is 4 pointers or 8 bytes, so we need to multiply patternParam by 8
-    ld      h, 0                            ; hl = patternParam
-    ld      l, a
-    add     hl, hl                          ; shift left 3 times
-    add     hl, hl
-    add     hl, hl
-    add     hl, bc                          ; offset the order table
-
-    ld      de, tbe_wCh1Ptr                 ; copy the order to the channel pointers
-    ld      b, 0
-    ld      c, 8
-    call    _tbe_memcpy
-
-    ld      a, $0F                          ; new row for all channels
-    ld      [tbe_wChflags], a
-
-    xor     a                               ; reset row counters
-    ld      [tbe_wRowCounter1], a
-    ld      [tbe_wRowCounter2], a
-    ld      [tbe_wRowCounter3], a
-    ld      [tbe_wRowCounter4], a
-
+    call    _tbe_gotoOrder
     jr      .updateCmd
 .skipCmd:
-    xor     a, PATTERN_CMD_SKIP ^ PATTERN_CMD_JUMP
+    cp      a, PATTERN_CMD_SKIP
     jr      nz, .noCmd
     ; skip command
-    ld      a, [tbe_wOrderCounter]
-    ld      b, a
     ld      a, [tbe_wOrderCount]
-    xor     a, b
+    ld      b, a
+    ld      a, [tbe_wOrderCounter]
+    cp      a, b
     jr      z, .noIncrement                 ; check if the orderCounter == orderCount (last order)
-    inc     b                               ; nope, just increment to the next order
-    ld      a, [tbe_wCurrentOrder]          ; hl = currentOrder
-    ld      l, a
-    ld      a, [tbe_wCurrentOrder + 1]
-    ld      h, a
-    ld      d, 0
-    ld      e, 8
-    add     hl, de                          ; point hl to the next one
-    ld      a, b
-    jr      .updateOrderVars
-.noIncrement:                               ; end of order, go back to the start (0)
-    ld      a,  [tbe_wOrderTable]           ; currentOrder = orderTable
-    ld      l, a
-    ld      a, [tbe_wOrderTable + 1]
-    ld      h, a
-    xor     a                               ; orderCounter = 0
-.updateOrderVars:
-    ld      [tbe_wOrderCounter], a          ; update orderCounter and currentOrder
-    ld      a, l
-    ld      [tbe_wCurrentOrder], a
-    ld      a, h
-    ld      [tbe_wCurrentOrder + 1], a
+    inc     a                               ; nope, just increment to the next order
+    jr      .orderCountDone
+.noIncrement:
+    xor     a
+.orderCountDone:
+    call    _tbe_gotoOrder
     ld      a, [tbe_wPatternParam]
-    or      a
     call    nz, _tbe_fastforward
-
 .updateCmd:
     xor     a
     ld      [tbe_wPatternCommand], a        ; reset pattern command variable
@@ -283,8 +326,128 @@ tbe_update::
 .timerNotActive:
 
 ; UPDATE CHANNELS -------------------------------------------------------------
+    
+    ld      hl, tbe_wNoteControl4               ; hl = note control variable
+    ld      b, 4                                ; b = loop counter
+    ld      c, $11 << ENGINE_CHFLAGS_ROWEN4     ; c = lock mask / panning mask
+.loopNoteControl:
+    ld      a, [tbe_wChflags]
+    and     a, c
+    jr      nz, .endNoteControl                 ; do nothing if channel is unlocked
+    bit     ENGINE_NC_NOTE, [hl]
+    jr      z, .nonote
+    ld      d, HIGH(tbe_wNoteCounter1)
+    ld      a, LOW(tbe_wNoteCounter1 - 1)
+    add     a, b
+    ld      e, a
+    ld      a, [de]
+    or      a
+    jr      nz, .decNoteCounter
+    ; note trigger
+ASSERT FATAL, tbe_wNote1 - tbe_wNoteControl1 == 4, "note and note control vars not nearby"
+    ld      a, 4
+    add     a, l
+    ld      e, a
+    ld      d, h
+    ld      a, [de]                             ; a = note index
+    push    hl
+    bit     ENGINE_CHFLAGS_LOCK4, c             ; are we CH4?
+    jr      z, .freqlookup
+    ld      hl, tbe_dNoiseTable
+    ld      d, 0
+    ld      e, a
+    add     hl, de
+    ld      a, [hl]                         ; load the noise byte
+    ld      d, a
+    ld      a, [tbe_wTimbre4]               ; combine with timbre (step-width)
+    or      a, d
+    ld      [tbe_wFreq4], a                 ; store in the frequency variable
+    jr      .lookupDone
+.freqlookup:
+    ld      h, HIGH(tbe_dNoteTable)
+    ld      l, a
+    ld      a, LOW(tbe_dNoteTable)
+    add     a, l
+    add     a, l
+    ld      l, a
+    ld      d, HIGH(tbe_wFreq1)
+    ld      e, b
+    dec     e
+    ld      a, LOW(tbe_wFreq1)
+    add     a, e
+    add     a, e
+    ld      e, a
+    ld      a, [hl+]
+    ld      [de], a
+    inc     e
+    ld      a, [hl]
+    ld      [de], a
+.lookupDone:
+    pop     hl
+    ld      a, [hl]
+    res     ENGINE_NC_NOTE, a
+    set     ENGINE_NC_PLAYING, a
+STATIC_ASSERT FATAL, ENGINE_NC_TRIGGER - ENGINE_NC_AREN == 1, "cannot use rlca here"
+    ld      d, a                            ; copy AREN bit into TRIGGER bit
+    rlca
+    and     a, 1 << ENGINE_NC_TRIGGER
+    or      a, d
+    ld      [hl], a
+    ld      a, [tbe_wPanningMask]
+    or      a, c
+    ld      [tbe_wPanningMask], a
+    jr      .nonote
+.decNoteCounter:
+    dec     a
+    ld      [de], a
+.nonote:
+    bit     ENGINE_NC_CUT, [hl]
+    jr      z, .nocut
+    ld      d, HIGH(tbe_wCutCounter1)
+    ld      a, LOW(tbe_wCutCounter1 - 1)
+    add     a, b
+    ld      e, a
+    ld      a, [de]
+    or      a
+    jr      nz, .decCutCounter
+    ; note cut
+    ld      a, [hl]
+    and     a, LOW(~((1 << ENGINE_NC_CUT) | (1 << ENGINE_NC_PLAYING)))
+    ld      [hl], a
+    ld      a, c
+    cpl                                         ; cut, so invert bits to clear
+    ld      d, a
+    ld      a, [tbe_wPanningMask]
+    and     a, d                                ; clear bits
+    ld      [tbe_wPanningMask], a
+    jr      .nocut
+.decCutCounter:
+    dec     a
+    ld      [de], a
+.nocut:
+    ; ld      d, [hl]
+    ; bit     ENGINE_NC_PLAYING, d
+    ; jr      z, .endNoteControl
+    ; ; TODO update frequency
 
-    ; TODO channel update logic
+.endNoteControl:
+    rrc     c
+    dec     l
+    dec     b
+    jp      nz, .loopNoteControl
+
+    ld      a, [tbe_wPanningMask]
+    ld      b, a
+    ld      a, [tbe_wPanning]
+    and     a, b
+    ld      [rNR51], a
+
+    updateFreq 1
+    updateFreq 2
+    updateFreq 3
+    updateFreq 4
+    
+
 
 ; UPDATE TIMER ----------------------------------------------------------------
     ld      a, [tbe_wTimerPeriod]           ; b = timerPeriod
@@ -327,17 +490,18 @@ tbe_update::
     ; pattern ended, load next one in the order unless a goto/skip is already scheduled
     ld      a, [tbe_wPatternCommand]            ; check if patternCommand == 0 (no command set)
     or      a
-    jr      nz, .reloadPatternCounter
+;    jr      nz, .reloadPatternCounter
+    ret     nz
     ld      a, PATTERN_CMD_SKIP                 ; skip to the next pattern
     ld      [tbe_wPatternCommand], a
     xor     a                                   ; clear the param (so we start at row 0)
     ld      [tbe_wPatternParam], a
-.reloadPatternCounter:
-    ld      a, [tbe_wPatternSize] 
-    jr      .writePatternCounter
+;.reloadPatternCounter:
+;    ld      a, [tbe_wPatternSize] 
+;    jr      .writePatternCounter
 .decrementPatternCounter:
     dec     a
-.writePatternCounter:
+;.writePatternCounter:
     ld      [tbe_wPatternCounter], a
     ret
 .noOverflow:
@@ -353,6 +517,20 @@ tbe_update::
 _tbe_parseRow:
     push    bc
     push    de
+
+ASSERT FATAL, (tbe_wCutCounter1 - tbe_wNoteCounter1) == 4, "Note and cut counters not aligned"
+    ld      hl, tbe_wNoteCounter1   ; reset note and cut counters
+    ld      a, l
+    add     a, b
+    ld      l, a
+    xor     a
+    ld      [hl], a                 ; clear note counter
+    inc     l
+    inc     l
+    inc     l
+    inc     l
+    ld      [hl], a                 ; clear cut counter
+
     ld      hl, tbe_wCh1Ptr         ; hl = channel pointer
     ld      a, b                    ; offset hl by channel id * 2
     rlca
@@ -410,13 +588,17 @@ ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
     ld      l, e
     
     ld      a, c                    ; restore parameter
+    push    bc
     jp      hl                      ; goto command
 .cmdExit:                           ; command will return here when finished
+    pop     bc
     pop     hl
+    
 
     jr      .getbyte                ; keep going
 .notebyte:
-    ; TODO: do something with the note (a)
+    ld      c, a                    ; c = note index, save for later
+    
     pop     de                      ; de = channel pointer variable (was saved early on)
     ld      a, l                    ; update channel pointer
     ld      [de], a
@@ -433,8 +615,69 @@ ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
     ld      l, a
     ld      a, [de]
     ld      [hl], a
+
+    ld      hl, tbe_wNoteControl1   ; hl = note control flags
+    ld      a, l
+    add     a, b
+    ld      l, a
+    ld      a, c                    ; restore note index
+    cp      a, NOTE_CUT             ; check for a cut
+    jr      nz, .notcut
+    ; schedule note cut
+    set     ENGINE_NC_CUT, [hl]     ; set cut enable
+    jr      .endnote
+.notcut:
+    cp      a, NOTE_REST            ; check for rest
+    jr      z, .endnote             ; if rest do nothing
+    ; schedule note trigger
+    set     ENGINE_NC_NOTE, [hl]    ; set note enable
+    ld      hl, tbe_wNote1          ; set note variable
+    ld      a, l
+    add     a, b
+    ld      l, a
+    ld      [hl], c
+.endnote:
     pop     de
     pop     bc
+    ret
+
+;
+; Setups up channel pointers to a given index in the order table
+; a: order index
+;
+_tbe_gotoOrder:
+    ld      [tbe_wOrderCounter], a
+    ld      d, a
+
+    ld      a, [tbe_wOrderTable]            ; bc = order table
+    ld      c, a
+    ld      a, [tbe_wOrderTable + 1]
+    ld      b, a
+
+    ; an order is 4 pointers or 8 bytes, so we need to multiply patternParam by 8
+    ld      h, 0                            ; hl = order index
+    ld      l, d
+    add     hl, hl                          ; shift left 3 times
+    add     hl, hl
+    add     hl, hl
+    add     hl, bc                          ; offset the order table
+    ld      de, tbe_wCh1Ptr                 ; copy the order to the channel pointers
+    ld      b, 0
+    ld      c, 8
+    call    _tbe_memcpy
+
+    ld      a, $0F                          ; new row for all channels
+    ld      [tbe_wChflags], a
+
+    xor     a                               ; reset row counters and durations
+    ld      hl, tbe_wRowCounter1
+    REPT 8
+    ld      [hl+], a
+    ENDR
+
+    ld      a, [tbe_wPatternSize]
+    ld      [tbe_wPatternCounter], a
+
     ret
 
 ;

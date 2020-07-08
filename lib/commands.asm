@@ -15,15 +15,15 @@ cmd_ret_cc: MACRO
 ENDM
 
 _tbe_cmdFnGoto:
-    ld      a, PATTERN_CMD_JUMP
+    ld      b, PATTERN_CMD_JUMP
     jr      _tbe_cmdFnSkip.setPatternCmd
 
 _tbe_cmdFnSkip:
-    ld      a, PATTERN_CMD_SKIP
+    ld      b, PATTERN_CMD_SKIP
 .setPatternCmd:
-    ld      [tbe_wPatternCommand], a
-    ld      a, b
     ld      [tbe_wPatternParam], a
+    ld      a, b
+    ld      [tbe_wPatternCommand], a
     cmd_ret
 
 _tbe_cmdFnHalt:
@@ -104,32 +104,64 @@ _tbe_setChParam:
     ret
 
 _tbe_cmdFnSetEnvelope:
-    ld      hl, tbe_wEnvelope1      ; load envelope variable
-    call    _tbe_setChParam    
-    ;set     1, [hl]                 ; set bit 1 to update envelope on next register write
-    ;ld      a, [hl]
-    ;or      REGSTAT_ENVELOPE | REGSTAT_RETRIGGER
-    ;ld      [hl], a
+    ld      hl, tbe_wEnvelope1          ; load envelope variable
+    call    _tbe_setChParam             ; set it in wram
+    ld      a, b
+    cp      a, 2
+    jr      z, .autoRetriggerEnd        ; update retrigger setting (except for CH3)
+    ld      h, HIGH(tbe_wNoteControl1)  ; hl = note control for channel
+    ld      a, LOW(tbe_wNoteControl1)
+    add     a, b
+    ld      l, a
+    ld      a, c
+    and     a, $7                       ; check period for 0
+    jr      z, .setAutoRetrigger
+    set     ENGINE_NC_AREN, [hl]        ; nonzero period, enable auto retrigger
+    jr      .autoRetriggerEnd
+.setAutoRetrigger:
+    res     ENGINE_NC_AREN, [hl]        ; zero period (constant volume) disable auto retrigger
+.autoRetriggerEnd:
     ld      a, [tbe_wCurrentChLocked]
     or      a
-    call    nz, _tbe_writeEnvelope
+    jr      nz, .exit                   ; do not write envelope if channel is unlocked
+    ld      a, c                        ; restore envelope setting
+    chjumptable
+.ch4:
+    writeEnvelope 4
+    jr      .exit
+.ch3:
+    writeEnvelope 3
+    jr      .exit
+.ch2:
+    writeEnvelope 2
+    jr      .exit
+.ch1:
+    writeEnvelope 1
+.exit:
     cmd_ret
 
 _tbe_cmdFnSetTimbre:
-    ld      hl, tbe_wTimbre1
-    call    _tbe_setChParam
+    ld      hl, tbe_wTimbre1            ; load timbre variable
+    call    _tbe_setChParam             ; store parameter in variable
     ld      a, [tbe_wCurrentChLocked]
     or      a
-    call    nz, _tbe_writeTimbre
-    
-    ;set     0, [hl]
+    jr      nz, .exit                   ; do not write timbre if channel is unlocked
+    ld      a, c
+    chjumptable
+    ; it is space-efficient to do jr .exit, instead of 4 cmd_ret
+.ch4:
+    writeTimbre 4
+    jr      .exit           
+.ch3:
+    writeTimbre 3
+    jr      .exit
+.ch2:
+    writeTimbre 2
+    jr      .exit
+.ch1:
+    writeTimbre 1
+.exit:
     cmd_ret
-
-dPanningMasks:
-    DB $11
-    DB $22
-    DB $44
-    DB $88
 
 _tbe_cmdFnSetPanning:
     chjumptable
@@ -164,9 +196,26 @@ _tbe_cmdFnInstrumentSet:
 _tbe_cmdFnInstrumentOff:
     cmd_ret
 
+_delayCmd: MACRO
+    ld      c, a                        ; c = delay in frames
+    ld      hl, tbe_wNoteControl1       ; set cut enable in note control
+    ld      a, l
+    add     a, b
+    ld      l, a
+    set     \1, [hl]
+    ld      hl, \2                      ; store c in cut counter
+    ld      a, l
+    add     a, b
+    ld      l, a
+    ld      [hl], c
+ENDM
+
+
 _tbe_cmdFnDelayedCut:
+    _delayCmd ENGINE_NC_CUT, tbe_wCutCounter1
     cmd_ret
 
 _tbe_cmdFnDelayedNote:
+    _delayCmd ENGINE_NC_NOTE, tbe_wNoteCounter1
     cmd_ret
 
