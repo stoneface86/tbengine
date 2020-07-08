@@ -4,7 +4,7 @@
 ; command calling convention
 ;  a - parameter (0 if no parameter)
 ;  b - channel id (0-3)
-;  all registers can be trashed, 
+;  all registers can be trashed, end routine with cmd_ret macro
 
 cmd_ret: MACRO
     jp      _tbe_parseRow.cmdExit

@@ -147,8 +147,8 @@ tbe_wCurrentChLocked:   DS 1
 
 ; END OF QUAD WORD ALIGNMENT
 
-tbe_wFreqControl1:      DS FreqControl_SIZEOF
-tbe_wFreqControl2:      DS FreqControl_SIZEOF
-tbe_wFreqControl3:      DS FreqControl_SIZEOF
+;tbe_wFreqControl1:      DS FreqControl_SIZEOF
+;tbe_wFreqControl2:      DS FreqControl_SIZEOF
+;tbe_wFreqControl3:      DS FreqControl_SIZEOF
 
 tbe_wWramEnd:

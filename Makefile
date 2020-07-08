@@ -56,12 +56,12 @@ DEFINES := -D TBE_ROM0
 LIB_SRC := lib/info.asm \
            lib/macros.asm \
            lib/engine.asm \
-		   lib/commands.asm \
-		   lib/frequency.asm \
-		   lib/registers.asm \
+           lib/commands.asm \
+           lib/frequency.asm \
+           lib/registers.asm \
            lib/tables.asm \
-		   lib/utils.asm \
-		   lib/wram.asm
+           lib/utils.asm \
+           lib/wram.asm
 
 #
 # The library is combined into a single asm file for releases
@@ -78,8 +78,8 @@ LIB_OBJ_FILES := lib/all.obj
 OBJ_FILES := demo/main.obj \
              demo/joypad.obj \
              demo/samplesong.obj \
-			 demo/nationalpark.obj \
-			 demo/rushingheart.obj \
+             demo/nationalpark.obj \
+             demo/rushingheart.obj \
              $(LIB_OBJ_FILES)
 OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))
 

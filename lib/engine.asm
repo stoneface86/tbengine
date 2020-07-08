@@ -15,15 +15,17 @@ ENGINE_FLAGS_PANNING EQU 1  ; if set, update music panning
 
 ; chflags bit fields
 ; rowen means that a new row from music data is to be parsed
-; if a channel is locked, music will not play on it
+; if a channel is locked, music will play on it
+; lock = 0: locked, music
+; lock = 1: unlocked, sound effect / custom
 ENGINE_CHFLAGS_ROWEN1   EQU 0   ; bit 0: CH1 row enable (if set)
 ENGINE_CHFLAGS_ROWEN2   EQU 1   ; bit 1: CH2 row enable (if set)
 ENGINE_CHFLAGS_ROWEN3   EQU 2   ; bit 2: CH3 row enable (if set)
 ENGINE_CHFLAGS_ROWEN4   EQU 3   ; bit 3: CH4 row enable (if set)
-ENGINE_CHFLAGS_LOCK1    EQU 4   ; bit 4: CH1 lock status
-ENGINE_CHFLAGS_LOCK2    EQU 5   ; bit 5: CH2 lock status
-ENGINE_CHFLAGS_LOCK3    EQU 6   ; bit 6: CH3 lock status
-ENGINE_CHFLAGS_LOCK4    EQU 7   ; bit 7: CH4 lock status
+ENGINE_CHFLAGS_LOCK1    EQU 4   ; bit 4: CH1 lock status, unlocked when set
+ENGINE_CHFLAGS_LOCK2    EQU 5   ; bit 5: CH2 lock status, unlocked when set
+ENGINE_CHFLAGS_LOCK3    EQU 6   ; bit 6: CH3 lock status, unlocked when set
+ENGINE_CHFLAGS_LOCK4    EQU 7   ; bit 7: CH4 lock status, unlocked when set
 
 ENGINE_DEFAULT_ENVELOPE EQU $F0
 
@@ -75,7 +77,7 @@ updateFreq: MACRO
     ld      [rNR\13], a
     ld      a, [hl]
     or      a, d                            ; add retrigger bit
-    ld      [rNR\14], a                     ; write upper frequency bits    
+    ld      [rNR\14], a                     ; write upper frequency bits
 .updateFreqEnd\1
 ENDM
 
