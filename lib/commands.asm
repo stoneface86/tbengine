@@ -188,6 +188,8 @@ _tbe_cmdFnSetPanning:
     and     a, b
     or      a, c
     ld      [tbe_wPanning], a
+    ld      hl, tbe_wStatus
+    set     ENGINE_FLAGS_PANNING, [hl]
     cmd_ret
 
 _tbe_cmdFnInstrumentSet:

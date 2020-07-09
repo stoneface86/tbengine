@@ -33,23 +33,45 @@ _tbe_writeWave:
 ; panning settings written to NR51.
 ;
 _tbe_writePanning:
-    ld      a, [tbe_wPanning]
+
+    ; NR51 gets the result of the following formula
+    ;
+    ; ((y & z) & ~w) | (x & w)
+    ; where
+    ;  w: channel lock bits
+    ;  x: current value of NR51
+    ;  y: tbe_wPanning
+    ;  z: tbe_wPanningMask
+    ;
+    ; when w is 0 (all channels locked) NR51 is set to (y & z)
+    ; w determines which bits of NR51 remain unchanged and which bits are set
+    ; from the music panning setting
+
+ASSERT FATAL, tbe_wPanningMask - tbe_wPanning == 1, "panning variables not nearby"
+    ld      hl, tbe_wPanning
+    ld      a, [hl+]
+    ld      b, [hl]
+    and     a, b
     ld      b, a
+
     ld      a, [tbe_wChflags]
-    and     a, $F0                      ; set lower nibble to the upper nibble
+    and     a, $F0
+    jr      z, .allLocked               ; just write y & z if all channels are locked
     ld      c, a
     swap    a
     or      a, c
-    ld      c, a
+    ld      c, a                        ; c = w
     cpl
     and     a, b
-    ld      b, a
-    ld      a, [rNR51]
-    and     a, c
-    or      a, b
+    ld      b, a                        ; b = (y & z) & ~w
+    ld      a, [rNR51]                  ; a = x
+    and     a, c                        ; a = x & w
+    or      a, b                        ; a = ((y & z) & ~w) | (x & w)
+    jr      .write
+.allLocked:
+    ld      a, b                        ; just write y & z
+.write:
     ld      [rNR51], a
-
-
     ret
 
 _tbe_writeSweep:

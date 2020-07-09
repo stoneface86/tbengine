@@ -81,6 +81,12 @@ updateFreq: MACRO
 .updateFreqEnd\1
 ENDM
 
+setPanningStatus: MACRO
+    ld      a, [tbe_wStatus]
+    set     ENGINE_FLAGS_PANNING, a
+    ld      [tbe_wStatus], a
+ENDM
+
 ; =========================================================================== ;
 ; Exported Routines                                                           ;
 ; =========================================================================== ;
@@ -155,6 +161,9 @@ _tbe_reset_channels:
     call    z, _tbe_reloadChannel.ch3
     bit     ENGINE_CHFLAGS_LOCK4, e
     call    z, _tbe_reloadChannel.ch4
+
+    ld      hl, tbe_wStatus
+    set     ENGINE_FLAGS_PANNING, [hl]
 
     pop     hl
     pop     de
@@ -335,7 +344,7 @@ tbe_update::
 .loopNoteControl:
     ld      a, [tbe_wChflags]
     and     a, c
-    jr      nz, .endNoteControl                 ; do nothing if channel is unlocked
+    jp      nz, .endNoteControl                 ; do nothing if channel is unlocked
     bit     ENGINE_NC_NOTE, [hl]
     jr      z, .nonote
     ld      d, HIGH(tbe_wNoteCounter1)
@@ -398,6 +407,7 @@ STATIC_ASSERT FATAL, ENGINE_NC_TRIGGER - ENGINE_NC_AREN == 1, "cannot use rlca h
     ld      a, [tbe_wPanningMask]
     or      a, c
     ld      [tbe_wPanningMask], a
+    setPanningStatus
     jr      .nonote
 .decNoteCounter:
     dec     a
@@ -422,6 +432,7 @@ STATIC_ASSERT FATAL, ENGINE_NC_TRIGGER - ENGINE_NC_AREN == 1, "cannot use rlca h
     ld      a, [tbe_wPanningMask]
     and     a, d                                ; clear bits
     ld      [tbe_wPanningMask], a
+    setPanningStatus
     jr      .nocut
 .decCutCounter:
     dec     a
@@ -438,17 +449,19 @@ STATIC_ASSERT FATAL, ENGINE_NC_TRIGGER - ENGINE_NC_AREN == 1, "cannot use rlca h
     dec     b
     jp      nz, .loopNoteControl
 
-    ld      a, [tbe_wPanningMask]
-    ld      b, a
-    ld      a, [tbe_wPanning]
-    and     a, b
-    ld      [rNR51], a
+    ld      hl, tbe_wStatus                 ; check status if panning bit is set
+    ld      a, [hl]
+    bit     ENGINE_FLAGS_PANNING, a
+    jr      z, .panningUpdateEnd
+    res     ENGINE_FLAGS_PANNING, a         ; reset panning bit
+    ld      [hl], a                         ; update status
+    call    _tbe_writePanning               ; write panning to NR51
+.panningUpdateEnd:
 
     updateFreq 1
     updateFreq 2
     updateFreq 3
     updateFreq 4
-    
 
 
 ; UPDATE TIMER ----------------------------------------------------------------
