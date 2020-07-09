@@ -188,6 +188,15 @@ _tbe_reloadChannel:
     reload 1
     ret
 
+lockChannel: MACRO
+    ld      a, [tbe_wChflags]
+    bit     ENGINE_CHFLAGS_LOCK\1, a
+    ret     z
+    res     ENGINE_CHFLAGS_LOCK\1, a
+    ld      [tbe_wChflags], a
+    jr      _tbe_reloadChannel.ch\1
+ENDM
+
 ;
 ; Force lock a channel. Music will resume playing on this channel. Sound
 ; registers are reloaded with music settings. If a sound effect was playing on
@@ -195,7 +204,15 @@ _tbe_reloadChannel:
 ; on finish). This routine does nothing if the channel is already locked.
 ;
 tbe_lockChannel::
-    ret
+    chjumptable
+.ch4:
+    lockChannel 4
+.ch3:
+    lockChannel 3
+.ch2:
+    lockChannel 2
+.ch1:
+    lockChannel 1
 
 ;
 ; Unlock a channel for access to sound registers. The engine will no longer
@@ -681,7 +698,8 @@ _tbe_gotoOrder:
     ld      c, 8
     call    _tbe_memcpy
 
-    ld      a, $0F                          ; new row for all channels
+    ld      a, [tbe_wChflags]
+    or      a, $0F                          ; new row for all channels
     ld      [tbe_wChflags], a
 
     xor     a                               ; reset row counters and durations

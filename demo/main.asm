@@ -108,6 +108,21 @@ Start:
     dec     a
     ld      [rSCY], a
 
+    call    joypad_read
+
+    ld      a, [wJoypadPressed]
+    bit     4, a
+    jr      nz, .noA
+    ld      b, 1
+    call    tbe_unlockChannel
+.noA:
+    ld      a, [wJoypadReleased]
+    bit     4, a
+    jr      nz, .norelease
+    ld      b, 1
+    call    tbe_lockChannel
+.norelease:
+
     call    tbe_update
 
     jr      .gameloop
