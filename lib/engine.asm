@@ -53,11 +53,13 @@ SongHeader_order        RW 1
 SongHeader_SIZEOF       RB 0
 
 parseRow: MACRO
+    bit     (\1 - 1), c
+    jr      z, .noParse\1
     ld      a, 1 << (3 + \1)                ; channel lock mask
     and     c                               ; and with flags
     ld      [tbe_wCurrentChLocked], a       ; store in the variable for later use
-    bit     (\1 - 1), c
-    call    nz, _tbe_parseRow
+    call    _tbe_parseRow
+.noParse\1:
     inc     b
 ENDM
 
