@@ -42,9 +42,10 @@ Valid note indices:
 
 Note: CH4 can only use octaves 2-6
 
-There are two special note indices, rest and cut.
- * `NOTE_REST` is essentially a no-op, used when you have effects set on a row but no
-   note to trigger. It is also used when a duration exceeds 64.
+There are two special note indices, hold and cut.
+ * `NOTE_HOLD` "holds" the current note. It is essentially a no-op, used when
+   you have effects set on a row but no note to trigger. It is also used when a
+   duration exceeds 64.
  * `NOTE_CUT` silences the channel via NR51
 
 ## Command byte

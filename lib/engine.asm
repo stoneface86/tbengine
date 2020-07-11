@@ -659,8 +659,8 @@ ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
     set     ENGINE_NC_CUT, [hl]     ; set cut enable
     jr      .endnote
 .notcut:
-    cp      a, NOTE_REST            ; check for rest
-    jr      z, .endnote             ; if rest do nothing
+    cp      a, NOTE_HOLD            ; check for hold
+    jr      z, .endnote             ; if hold do nothing
     ; schedule note trigger
     set     ENGINE_NC_NOTE, [hl]    ; set note enable
     ld      hl, tbe_wNote1          ; set note variable

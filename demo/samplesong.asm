@@ -41,7 +41,7 @@ sampleSong_order:
 
 sampleSong_ch1_track0:
     tbe_duration 16
-    tbe_note NOTE_REST          ; row 0x00
+    tbe_note NOTE_HOLD          ; row 0x00
 
     tbe_setEnvelope $E0
     tbe_instrumentSet 0
@@ -74,7 +74,7 @@ sampleSong_ch1_track0:
 
 sampleSong_ch2_track0:
     tbe_duration 16
-    tbe_note NOTE_REST          ; row 0x00
+    tbe_note NOTE_HOLD          ; row 0x00
 
     tbe_setEnvelope $E0
     tbe_instrumentSet 0
@@ -107,7 +107,7 @@ sampleSong_ch2_track0:
     
     tbe_duration 1
     tbe_halt
-    tbe_note NOTE_REST          ; row 0x3A
+    tbe_note NOTE_HOLD          ; row 0x3A
 
 sampleSong_ch3_track0:
     tbe_duration 1
@@ -117,13 +117,13 @@ sampleSong_ch3_track0:
     tbe_note G#5                ; row 0x00
 
     tbe_instrumentSet 0
-    tbe_note NOTE_REST          ; row 0x01
+    tbe_note NOTE_HOLD          ; row 0x01
 
     tbe_instrumentOff
     tbe_note G#5                ; row 0x02
 
     tbe_instrumentSet 0
-    tbe_note NOTE_REST          ; row 0x03
+    tbe_note NOTE_HOLD          ; row 0x03
 
     tbe_note G#5                ; row 0x04
     
@@ -137,13 +137,13 @@ sampleSong_ch3_track0:
     tbe_note D_5                ; row 0x07
 
     tbe_instrumentSet 0
-    tbe_note NOTE_REST          ; row 0x08
+    tbe_note NOTE_HOLD          ; row 0x08
 
     tbe_instrumentOff
     tbe_note D_5                ; row 0x09
 
     tbe_instrumentSet 0
-    tbe_note NOTE_REST          ; row 0x0A
+    tbe_note NOTE_HOLD          ; row 0x0A
 
     tbe_note D_5                ; row 0x0B
 
@@ -184,13 +184,13 @@ sampleSong_ch3_track0:
 
     tbe_duration 4
     tbe_instrumentSet 0
-    tbe_note NOTE_REST          ; row 0x37
+    tbe_note NOTE_HOLD          ; row 0x37
 
     
 
 sampleSong_ch4_track0:
     tbe_duration 64
-    tbe_note NOTE_REST          ; row 0x00
+    tbe_note NOTE_HOLD          ; row 0x00
 
 sampleSong_end:
 

@@ -35,13 +35,13 @@ natpark_ch3_tr0:
 
 natpark_ch4_tr0:
     tbe_duration 2
-    tbe_note NOTE_REST
+    tbe_note NOTE_HOLD
 
 
 natpark_ch4_tr1:
     _pattern_check_reset
     tbe_duration 64
-    tbe_note NOTE_REST
+    tbe_note NOTE_HOLD
     _pattern_check PATTERN_SIZE
 
 natpark_ch1_tr1:
@@ -390,7 +390,7 @@ natpark_ch1_tr4:
 
 natpark_ch1_tr5:
     tbe_duration 32
-    tbe_note NOTE_REST
+    tbe_note NOTE_HOLD
 
     tbe_duration 2
     tbe_note A#3
@@ -788,7 +788,7 @@ natpark_ch2_tr6:
     tbe_note D_3
 
     tbe_goto $01
-    tbe_note NOTE_REST
+    tbe_note NOTE_HOLD
 
     _pattern_check PATTERN_SIZE
 

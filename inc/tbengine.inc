@@ -88,7 +88,7 @@ A#8 EQU 82
 B_8 EQU 83
 
 ; special notes
-NOTE_REST EQU B_8 + 1           ; "no-op", this occurs when the note column is empty
+NOTE_HOLD EQU B_8 + 1           ; "no-op", this occurs when the note column is empty
 NOTE_CUT  EQU B_8 + 2           ; turns sound output for the channel off
 NOTE_RELEASE EQU B_8 + 3        ; TBD
 
