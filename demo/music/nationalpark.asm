@@ -7,47 +7,33 @@ PATTERN_SIZE EQU 64
 
 song_natpark::
     DB $48              ; speed (9.0 frames per row, 100 BPM)
-    DB 11 - 1           ; order size
-    DB PATTERN_SIZE - 1 ; pattern size
-    DW .order
-
-.order:
-    DW .ch4_tr0, .ch4_tr0, .ch3_tr0, .ch4_tr0
-    DW .ch1_tr1, .ch2_tr1, .ch3_tr1, .ch4_tr1
-    DW .ch1_tr2, .ch2_tr2, .ch3_tr2, .ch4_tr1
-    DW .ch1_tr3, .ch2_tr2, .ch3_tr3, .ch4_tr1
-    DW .ch1_tr1, .ch2_tr1, .ch3_tr1, .ch4_tr1
-    DW .ch1_tr2, .ch2_tr2, .ch3_tr2, .ch4_tr1
-    DW .ch1_tr3, .ch2_tr3, .ch3_tr4, .ch4_tr1
-    DW .ch1_tr4, .ch2_tr4, .ch3_tr5, .ch4_tr1
-    DW .ch1_tr5, .ch2_tr5, .ch3_tr6, .ch4_tr1
-    DW .ch1_tr4, .ch2_tr4, .ch3_tr5, .ch4_tr1
-    DW .ch1_tr6, .ch2_tr6, .ch3_tr7, .ch4_tr1
+    DW .ch1_entry
+    DW .ch2_entry
+    DW .ch3_entry
+    DW .ch4_entry
 
 
-.ch3_tr0:
-    tbe_setEnvelope $03
-    tbe_setTimbre $20
-    tbe_note G#5
+; CH1 =========================================================================
 
-    tbe_skip $00
-    tbe_note A#5
-
-.ch4_tr0:
-    tbe_duration 2
-    tbe_note NOTE_HOLD
-
-
-.ch4_tr1:
-    _pattern_check_reset
-    tbe_duration 64
-    tbe_note NOTE_HOLD
-    _pattern_check PATTERN_SIZE
-
-.ch1_tr1:
+.ch1_entry:
     tbe_setTimbre $40
     tbe_setEnvelope $77
     tbe_setPanning $01
+    tbe_duration 2
+    tbe_note NOTE_HOLD
+.ch1_main:
+    tbe_call .ch1_tr_1_2_3 ; tracks 1, 2, 3
+    tbe_call .ch1_tr_1_2_3
+    tbe_call .ch1_tr_4
+    tbe_call .ch1_tr_5
+    tbe_call .ch1_tr_4
+    tbe_call .ch1_tr_6
+    tbe_call .ch1_main
+
+.ch1_tr_1_2_3:
+    _pattern_check_reset
+    ; track 1
+
     tbe_duration 6
     tbe_note G#3
 
@@ -169,7 +155,8 @@ song_natpark::
 
     _pattern_check PATTERN_SIZE
 
-.ch1_tr2:
+    ; track 2
+
     tbe_duration 2
     tbe_note C#5
 
@@ -269,7 +256,7 @@ song_natpark::
 
     _pattern_check PATTERN_SIZE
 
-.ch1_tr3:
+    ; track 3
 
     tbe_duration 2
     tbe_note C#5
@@ -352,7 +339,9 @@ song_natpark::
 
     _pattern_check PATTERN_SIZE
 
-.ch1_tr4:
+    tbe_ret
+
+.ch1_tr_4:
     tbe_duration 19
     tbe_note NOTE_CUT
 
@@ -388,7 +377,9 @@ song_natpark::
 
     _pattern_check PATTERN_SIZE
 
-.ch1_tr5:
+    tbe_ret
+
+.ch1_tr_5:
     tbe_duration 32
     tbe_note NOTE_HOLD
 
@@ -440,11 +431,12 @@ song_natpark::
 
     tbe_note NOTE_CUT
 
-
     _pattern_check PATTERN_SIZE
 
-.ch1_tr6:
+    tbe_ret
 
+.ch1_tr_6:
+    tbe_duration 1
     tbe_note E_4
 
     tbe_duration 5
@@ -475,12 +467,35 @@ song_natpark::
     tbe_note NOTE_CUT
     _pattern_check PATTERN_SIZE
 
-.ch2_tr1:
-    
-    tbe_setEnvelope $A7
-    tbe_setTimbre $40
-    tbe_tempo $48
+    tbe_ret
+
+
+; CH2 =========================================================================
+
+.ch2_entry:
     tbe_setPanning $10
+    tbe_setTimbre $40
+    tbe_duration 2
+    tbe_note NOTE_HOLD
+.ch2_main:
+    tbe_call .ch2_tr_1
+    tbe_call .ch2_tr_2
+    tbe_call .ch2_tr_2
+    tbe_call .ch2_tr_1
+    tbe_call .ch2_tr_2
+    tbe_call .ch2_tr_3
+    tbe_call .ch2_tr_4
+    tbe_call .ch2_tr_5
+    tbe_call .ch2_tr_4
+    tbe_call .ch2_tr_6
+    tbe_call .ch2_main
+
+.ch2_tr_1:
+    _pattern_check_reset
+
+    tbe_setEnvelope $A7
+    tbe_tempo $48
+    
     tbe_duration 6
     tbe_note C#3
     
@@ -519,9 +534,9 @@ song_natpark::
     
     _pattern_check PATTERN_SIZE
 
-.ch2_tr2:
-    
+    tbe_ret
 
+.ch2_tr_2:
     tbe_duration 6
     tbe_note F#2
 
@@ -559,9 +574,9 @@ song_natpark::
     tbe_note D_4
     _pattern_check PATTERN_SIZE
 
-.ch2_tr3:
-    
+    tbe_ret
 
+.ch2_tr_3:
     tbe_duration 6
     tbe_note F#2
 
@@ -604,9 +619,10 @@ song_natpark::
     tbe_note F_5
     _pattern_check PATTERN_SIZE
 
-.ch2_tr4:
-    
+    tbe_ret
 
+.ch2_tr_4:
+    tbe_duration 1
     tbe_tempo $24
     tbe_note E_5
 
@@ -684,11 +700,10 @@ song_natpark::
     tbe_note C#5
     _pattern_check PATTERN_SIZE
 
+    tbe_ret
 
-.ch2_tr5:
-
-    
-
+.ch2_tr_5:
+    tbe_duration 1
     tbe_note B_4
 
     tbe_duration 5
@@ -753,11 +768,11 @@ song_natpark::
     tbe_note NOTE_CUT
     
     _pattern_check PATTERN_SIZE
-    
 
-.ch2_tr6:
-    
+    tbe_ret
 
+.ch2_tr_6:
+    tbe_duration 1
     tbe_note B_4
 
     tbe_duration 5
@@ -784,17 +799,33 @@ song_natpark::
     tbe_duration 2
     tbe_note D#3
 
-    tbe_duration 1
     tbe_note D_3
-
-    tbe_goto $01
-    tbe_note NOTE_HOLD
 
     _pattern_check PATTERN_SIZE
 
+    tbe_ret
 
-.ch3_tr1:
-    
+; CH3 =========================================================================
+
+.ch3_entry:
+    tbe_setEnvelope $03
+    tbe_note G#5
+    tbe_note A#5
+.ch3_main:
+    tbe_call .ch3_tr_1_2
+    tbe_call .ch3_tr_3
+    tbe_call .ch3_tr_1_2
+    tbe_call .ch3_tr_4
+    tbe_call .ch3_tr_5
+    tbe_call .ch3_tr_6
+    tbe_call .ch3_tr_5
+    tbe_call .ch3_tr_7
+    tbe_call .ch3_main
+
+.ch3_tr_1_2:
+    _pattern_check_reset
+
+    ; Track 1
 
     tbe_duration 16
     tbe_note C_6
@@ -822,8 +853,7 @@ song_natpark::
 
     _pattern_check PATTERN_SIZE
 
-.ch3_tr2:
-    
+    ; Track 2
 
     tbe_duration 2
     tbe_note F_7
@@ -869,12 +899,13 @@ song_natpark::
     tbe_duration 1
     tbe_note D_7
 
-    ;tbe_delayedCut 5
     tbe_note D#7
 
     _pattern_check PATTERN_SIZE
 
-.ch3_tr3:
+    tbe_ret
+
+.ch3_tr_3:
     tbe_duration 2
     tbe_note F_7
 
@@ -920,7 +951,9 @@ song_natpark::
 
     _pattern_check PATTERN_SIZE
 
-.ch3_tr4:
+    tbe_ret
+
+.ch3_tr_4:
     tbe_duration 2
     tbe_note F_7
 
@@ -963,7 +996,9 @@ song_natpark::
 
     _pattern_check PATTERN_SIZE
 
-.ch3_tr5:
+    tbe_ret
+
+.ch3_tr_5:
     tbe_setEnvelope $04
     tbe_duration 6
     tbe_note F#3
@@ -1010,7 +1045,9 @@ song_natpark::
 
     _pattern_check PATTERN_SIZE
 
-.ch3_tr6:
+    tbe_ret
+
+.ch3_tr_6:
     tbe_duration 6
     tbe_note F_3
 
@@ -1056,7 +1093,9 @@ song_natpark::
 
     _pattern_check PATTERN_SIZE
 
-.ch3_tr7:
+    tbe_ret
+
+.ch3_tr_7:
     tbe_duration 6
     tbe_note F_3
 
@@ -1106,6 +1145,19 @@ song_natpark::
     tbe_note A#5
 
     _pattern_check PATTERN_SIZE
+
+    tbe_ret
+
+; CH4 =========================================================================
+
+.ch4_entry:
+    tbe_duration 2
+    tbe_note NOTE_HOLD
+.ch4_main:
+    tbe_duration 64
+.ch4_nothing:
+    tbe_note NOTE_HOLD
+    tbe_call .ch4_nothing
 
 .end:
 
