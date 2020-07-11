@@ -38,8 +38,8 @@ tbe_dVibratoTable::
 ;
 tbe_dCommandTable:
     ; effect commands
-    DW _tbe_cmdFnGoto
-    DW _tbe_cmdFnSkip
+    DW _tbe_cmdFnCall
+    DW _tbe_cmdFnRet
     DW _tbe_cmdFnHalt
     DW _tbe_cmdFnTempo
     DW _tbe_cmdFnSfx
@@ -59,8 +59,6 @@ tbe_dCommandTable:
     DW _tbe_cmdFnInstrumentOff
     DW _tbe_cmdFnDelayedCut
     DW _tbe_cmdFnDelayedNote
-    DW _tbe_cmdFnCall
-    DW _tbe_cmdFnRet
 
 ; Note frequency table
 ; Octave range for CH1/CH2 is 2-8, CH3 is one lower (unless the waveform has 2 periods)

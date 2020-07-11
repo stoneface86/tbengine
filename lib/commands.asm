@@ -67,10 +67,6 @@ _tbe_cmdFnRet:
     ld      [hl], b
     cmd_ret
 
-_tbe_cmdFnGoto:
-_tbe_cmdFnSkip:
-    cmd_ret
-
 ; _tbe_cmdFnGoto:
 ;     ld      b, PATTERN_CMD_JUMP
 ;     jr      _tbe_cmdFnSkip.setPatternCmd

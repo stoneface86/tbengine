@@ -144,8 +144,8 @@ NOTE_LAST EQU NOTE_CUT
 ; $C0-$FF: duration byte (sets the default duration for notes)
 
 ; Command indices
-CMD_GOTO                EQU 0
-CMD_SKIP                EQU 1
+CMD_CALL                EQU 0
+CMD_RET                 EQU 1
 CMD_HALT                EQU 2
 CMD_TEMPO               EQU 3
 CMD_SFX                 EQU 4
@@ -165,8 +165,6 @@ CMD_INSTRUMENT_SET      EQU 17
 CMD_INSTRUMENT_OFF      EQU 18
 CMD_DELAYED_CUT         EQU 19
 CMD_DELAYED_NOTE        EQU 20
-CMD_CALL                EQU 21
-CMD_RET                 EQU 22
 
 ; 21/32 commands used
 
@@ -219,16 +217,6 @@ ENDM
 
 tbe_ret: MACRO
     _makeCmd CMD_RET, 0
-ENDM
-
-; tbe_goto <orderNo>
-tbe_goto: MACRO
-    _makeCmd CMD_GOTO, \1
-ENDM
-
-; tbe_skip <rowNo>
-tbe_skip: MACRO
-    _makeCmd CMD_SKIP, \1
 ENDM
 
 ; tbe_halt
