@@ -4,16 +4,15 @@ INCLUDE "tbengine.inc"
 
 SECTION "song_stageclear", ROM0
 
-stageclear::
+song_stageclear::
     DB $30              ; speed (6.0 frames per row, 150 BPM)
-    DB $1 - 1           ; order size
-    DB 64 - 1           ; pattern size
-    DW .order
+    DW .ch1_main
+    DW .ch2_main
+    DW .ch3_main
+    DW .ch4_main
 
-.order:
-    DW .ch1_tr0, .ch2_tr0, .ch3_tr0, .ch4_tr0
 
-.ch1_tr0:
+.ch1_main:
     tbe_duration 16
     tbe_note NOTE_HOLD          ; row 0x00
 
@@ -46,7 +45,7 @@ stageclear::
     tbe_instrumentOff
     tbe_note E_5                ; row 0x1F
 
-.ch2_tr0:
+.ch2_main:
     tbe_duration 16
     tbe_note NOTE_HOLD          ; row 0x00
 
@@ -83,7 +82,7 @@ stageclear::
     tbe_halt
     tbe_note NOTE_HOLD          ; row 0x3A
 
-.ch3_tr0:
+.ch3_main:
     tbe_duration 1
     tbe_pitchSlideDown $10
     tbe_setEnvelope $00
@@ -160,14 +159,12 @@ stageclear::
     tbe_instrumentSet 0
     tbe_note NOTE_HOLD          ; row 0x37
 
-    
-
-.ch4_tr0:
+.ch4_main:
     tbe_duration 64
     tbe_note NOTE_HOLD          ; row 0x00
 
 .end:
 
 PRINTT "song_stageclear size: "
-PRINTI stageclear.end - stageclear
+PRINTI song_stageclear.end - song_stageclear
 PRINTT " bytes \n"
