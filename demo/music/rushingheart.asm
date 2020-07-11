@@ -12,15 +12,15 @@ song_rushingheart::
     DB $11              ; speed (2.125 frames per row, ~420 BPM)
     DB 4 - 1            ; order size
     DB PATTERN_SIZE - 1 ; pattern size
-    DW rushingheart_order
+    DW .order
 
-rushingheart_order:
-    DW rh_ch1_tr0, rh_ch2_tr0, rh_ch3_tr0, rh_ch4_tr0
-    DW rh_ch1_tr0, rh_ch2_tr1, rh_ch3_tr0, rh_ch4_tr1
-    DW rh_ch1_tr0, rh_ch2_tr0, rh_ch3_tr0, rh_ch4_tr0
-    DW rh_ch1_tr0, rh_ch2_tr2, rh_ch3_tr0, rh_ch4_tr2
+.order:
+    DW .ch1_tr0, .ch2_tr0, .ch3_tr0, .ch4_tr0
+    DW .ch1_tr0, .ch2_tr1, .ch3_tr0, .ch4_tr1
+    DW .ch1_tr0, .ch2_tr0, .ch3_tr0, .ch4_tr0
+    DW .ch1_tr0, .ch2_tr2, .ch3_tr0, .ch4_tr2
 
-rh_ch1_tr0:
+.ch1_tr0:
     tbe_setTimbre $20
     tbe_setEnvelope $A7
     tbe_duration 7
@@ -94,7 +94,7 @@ rh_ch1_tr0:
 
 ; Channel 2 ---
 
-rh_ch2_tr0:
+.ch2_tr0:
     tbe_setTimbre $20
     tbe_setEnvelope $57
     tbe_duration 8
@@ -142,7 +142,7 @@ rh_ch2_tr0:
 
     _pattern_check PATTERN_SIZE
 
-rh_ch2_tr1:
+.ch2_tr1:
     tbe_setTimbre $20
     tbe_setEnvelope $57
     tbe_duration 12
@@ -188,7 +188,7 @@ rh_ch2_tr1:
 
     _pattern_check PATTERN_SIZE
 
-rh_ch2_tr2:
+.ch2_tr2:
     tbe_setTimbre $20
     tbe_setEnvelope $57
     tbe_duration 8
@@ -252,7 +252,7 @@ rh_ch2_tr2:
 
 ; Channel 3 ---
 
-rh_ch3_tr0:
+.ch3_tr0:
     tbe_setEnvelope $00
     tbe_duration 12
     tbe_note G_3
@@ -268,7 +268,7 @@ DRUM_3 EQU C_6
 DRUM_C EQU C_7
 DRUM_7 EQU F_6
 
-rh_ch4_tr0:
+.ch4_tr0:
     tbe_setEnvelope $B1
     tbe_duration 4
     tbe_note DRUM_3
@@ -297,7 +297,7 @@ rh_ch4_tr0:
 
     _pattern_check PATTERN_SIZE
 
-rh_ch4_tr1:
+.ch4_tr1:
     tbe_setEnvelope $B1
     tbe_duration 4
     tbe_note DRUM_3
@@ -326,7 +326,7 @@ rh_ch4_tr1:
 
     _pattern_check PATTERN_SIZE
 
-rh_ch4_tr2:
+.ch4_tr2:
     tbe_setEnvelope $B1
     tbe_duration 4
     tbe_note DRUM_3
@@ -360,8 +360,8 @@ rh_ch4_tr2:
 
     _pattern_check PATTERN_SIZE
 
-song_rushingheart_end:
+.end:
 
 PRINTT "song_rushingheart size: "
-PRINTI song_rushingheart_end - song_rushingheart
-PRINTT "\n"
+PRINTI song_rushingheart.end - song_rushingheart
+PRINTT " bytes\n"

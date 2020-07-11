@@ -8,12 +8,12 @@ stageclear::
     DB $30              ; speed (6.0 frames per row, 150 BPM)
     DB $1 - 1           ; order size
     DB 64 - 1           ; pattern size
-    DW stageclear_order
+    DW .order
 
-stageclear_order:
-    DW stageclear_ch1_track0, stageclear_ch2_track0, stageclear_ch3_track0, stageclear_ch4_track0
+.order:
+    DW .ch1_tr0, .ch2_tr0, .ch3_tr0, .ch4_tr0
 
-stageclear_ch1_track0:
+.ch1_tr0:
     tbe_duration 16
     tbe_note NOTE_HOLD          ; row 0x00
 
@@ -46,7 +46,7 @@ stageclear_ch1_track0:
     tbe_instrumentOff
     tbe_note E_5                ; row 0x1F
 
-stageclear_ch2_track0:
+.ch2_tr0:
     tbe_duration 16
     tbe_note NOTE_HOLD          ; row 0x00
 
@@ -83,7 +83,7 @@ stageclear_ch2_track0:
     tbe_halt
     tbe_note NOTE_HOLD          ; row 0x3A
 
-stageclear_ch3_track0:
+.ch3_tr0:
     tbe_duration 1
     tbe_pitchSlideDown $10
     tbe_setEnvelope $00
@@ -162,12 +162,12 @@ stageclear_ch3_track0:
 
     
 
-stageclear_ch4_track0:
+.ch4_tr0:
     tbe_duration 64
     tbe_note NOTE_HOLD          ; row 0x00
 
-stageclear_end:
+.end:
 
-; PRINTT "Sample song size: "
-; PRINTI stageclear_end - stageclear
-; PRINTT "\n"
+PRINTT "song_stageclear size: "
+PRINTI stageclear.end - stageclear
+PRINTT " bytes \n"

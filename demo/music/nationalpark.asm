@@ -9,23 +9,23 @@ song_natpark::
     DB $48              ; speed (9.0 frames per row, 100 BPM)
     DB 11 - 1           ; order size
     DB PATTERN_SIZE - 1 ; pattern size
-    DW natpark_order
+    DW .order
 
-natpark_order:
-    DW natpark_ch4_tr0, natpark_ch4_tr0, natpark_ch3_tr0, natpark_ch4_tr0
-    DW natpark_ch1_tr1, natpark_ch2_tr1, natpark_ch3_tr1, natpark_ch4_tr1
-    DW natpark_ch1_tr2, natpark_ch2_tr2, natpark_ch3_tr2, natpark_ch4_tr1
-    DW natpark_ch1_tr3, natpark_ch2_tr2, natpark_ch3_tr3, natpark_ch4_tr1
-    DW natpark_ch1_tr1, natpark_ch2_tr1, natpark_ch3_tr1, natpark_ch4_tr1
-    DW natpark_ch1_tr2, natpark_ch2_tr2, natpark_ch3_tr2, natpark_ch4_tr1
-    DW natpark_ch1_tr3, natpark_ch2_tr3, natpark_ch3_tr4, natpark_ch4_tr1
-    DW natpark_ch1_tr4, natpark_ch2_tr4, natpark_ch3_tr5, natpark_ch4_tr1
-    DW natpark_ch1_tr5, natpark_ch2_tr5, natpark_ch3_tr6, natpark_ch4_tr1
-    DW natpark_ch1_tr4, natpark_ch2_tr4, natpark_ch3_tr5, natpark_ch4_tr1
-    DW natpark_ch1_tr6, natpark_ch2_tr6, natpark_ch3_tr7, natpark_ch4_tr1
+.order:
+    DW .ch4_tr0, .ch4_tr0, .ch3_tr0, .ch4_tr0
+    DW .ch1_tr1, .ch2_tr1, .ch3_tr1, .ch4_tr1
+    DW .ch1_tr2, .ch2_tr2, .ch3_tr2, .ch4_tr1
+    DW .ch1_tr3, .ch2_tr2, .ch3_tr3, .ch4_tr1
+    DW .ch1_tr1, .ch2_tr1, .ch3_tr1, .ch4_tr1
+    DW .ch1_tr2, .ch2_tr2, .ch3_tr2, .ch4_tr1
+    DW .ch1_tr3, .ch2_tr3, .ch3_tr4, .ch4_tr1
+    DW .ch1_tr4, .ch2_tr4, .ch3_tr5, .ch4_tr1
+    DW .ch1_tr5, .ch2_tr5, .ch3_tr6, .ch4_tr1
+    DW .ch1_tr4, .ch2_tr4, .ch3_tr5, .ch4_tr1
+    DW .ch1_tr6, .ch2_tr6, .ch3_tr7, .ch4_tr1
 
 
-natpark_ch3_tr0:
+.ch3_tr0:
     tbe_setEnvelope $03
     tbe_setTimbre $20
     tbe_note G#5
@@ -33,18 +33,18 @@ natpark_ch3_tr0:
     tbe_skip $00
     tbe_note A#5
 
-natpark_ch4_tr0:
+.ch4_tr0:
     tbe_duration 2
     tbe_note NOTE_HOLD
 
 
-natpark_ch4_tr1:
+.ch4_tr1:
     _pattern_check_reset
     tbe_duration 64
     tbe_note NOTE_HOLD
     _pattern_check PATTERN_SIZE
 
-natpark_ch1_tr1:
+.ch1_tr1:
     tbe_setTimbre $40
     tbe_setEnvelope $77
     tbe_setPanning $01
@@ -169,7 +169,7 @@ natpark_ch1_tr1:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch1_tr2:
+.ch1_tr2:
     tbe_duration 2
     tbe_note C#5
 
@@ -269,7 +269,7 @@ natpark_ch1_tr2:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch1_tr3:
+.ch1_tr3:
 
     tbe_duration 2
     tbe_note C#5
@@ -352,7 +352,7 @@ natpark_ch1_tr3:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch1_tr4:
+.ch1_tr4:
     tbe_duration 19
     tbe_note NOTE_CUT
 
@@ -388,7 +388,7 @@ natpark_ch1_tr4:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch1_tr5:
+.ch1_tr5:
     tbe_duration 32
     tbe_note NOTE_HOLD
 
@@ -443,7 +443,7 @@ natpark_ch1_tr5:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch1_tr6:
+.ch1_tr6:
 
     tbe_note E_4
 
@@ -475,7 +475,7 @@ natpark_ch1_tr6:
     tbe_note NOTE_CUT
     _pattern_check PATTERN_SIZE
 
-natpark_ch2_tr1:
+.ch2_tr1:
     
     tbe_setEnvelope $A7
     tbe_setTimbre $40
@@ -519,7 +519,7 @@ natpark_ch2_tr1:
     
     _pattern_check PATTERN_SIZE
 
-natpark_ch2_tr2:
+.ch2_tr2:
     
 
     tbe_duration 6
@@ -559,7 +559,7 @@ natpark_ch2_tr2:
     tbe_note D_4
     _pattern_check PATTERN_SIZE
 
-natpark_ch2_tr3:
+.ch2_tr3:
     
 
     tbe_duration 6
@@ -604,7 +604,7 @@ natpark_ch2_tr3:
     tbe_note F_5
     _pattern_check PATTERN_SIZE
 
-natpark_ch2_tr4:
+.ch2_tr4:
     
 
     tbe_tempo $24
@@ -685,7 +685,7 @@ natpark_ch2_tr4:
     _pattern_check PATTERN_SIZE
 
 
-natpark_ch2_tr5:
+.ch2_tr5:
 
     
 
@@ -755,7 +755,7 @@ natpark_ch2_tr5:
     _pattern_check PATTERN_SIZE
     
 
-natpark_ch2_tr6:
+.ch2_tr6:
     
 
     tbe_note B_4
@@ -793,7 +793,7 @@ natpark_ch2_tr6:
     _pattern_check PATTERN_SIZE
 
 
-natpark_ch3_tr1:
+.ch3_tr1:
     
 
     tbe_duration 16
@@ -822,7 +822,7 @@ natpark_ch3_tr1:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch3_tr2:
+.ch3_tr2:
     
 
     tbe_duration 2
@@ -874,7 +874,7 @@ natpark_ch3_tr2:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch3_tr3:
+.ch3_tr3:
     tbe_duration 2
     tbe_note F_7
 
@@ -920,7 +920,7 @@ natpark_ch3_tr3:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch3_tr4:
+.ch3_tr4:
     tbe_duration 2
     tbe_note F_7
 
@@ -963,7 +963,7 @@ natpark_ch3_tr4:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch3_tr5:
+.ch3_tr5:
     tbe_setEnvelope $04
     tbe_duration 6
     tbe_note F#3
@@ -1010,7 +1010,7 @@ natpark_ch3_tr5:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch3_tr6:
+.ch3_tr6:
     tbe_duration 6
     tbe_note F_3
 
@@ -1056,7 +1056,7 @@ natpark_ch3_tr6:
 
     _pattern_check PATTERN_SIZE
 
-natpark_ch3_tr7:
+.ch3_tr7:
     tbe_duration 6
     tbe_note F_3
 
@@ -1107,8 +1107,8 @@ natpark_ch3_tr7:
 
     _pattern_check PATTERN_SIZE
 
-song_natpark_end:
+.end:
 
 PRINTT "song_natpark size: "
-PRINTI song_natpark_end - song_natpark
-PRINTT "\n"
+PRINTI song_natpark.end - song_natpark
+PRINTT " bytes\n"
