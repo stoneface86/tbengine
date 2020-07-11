@@ -10,15 +10,40 @@ PATTERN_SIZE EQU 64
 
 song_rushingheart::
     DB $11              ; speed (2.125 frames per row, ~420 BPM)
-    DB 4 - 1            ; order size
-    DB PATTERN_SIZE - 1 ; pattern size
+    DB 1 - 1
+    DB 64 - 1
     DW .order
+;    DW .ch1_main
+;    DW .ch2_main
+;    DW .ch3_main
+;    DW .ch4_main
 
 .order:
-    DW .ch1_tr0, .ch2_tr0, .ch3_tr0, .ch4_tr0
-    DW .ch1_tr0, .ch2_tr1, .ch3_tr0, .ch4_tr1
-    DW .ch1_tr0, .ch2_tr0, .ch3_tr0, .ch4_tr0
-    DW .ch1_tr0, .ch2_tr2, .ch3_tr0, .ch4_tr2
+    DW .ch1_main, .ch2_main, .ch3_main, .ch4_main
+
+.ch1_main:
+    tbe_call .ch1_tr0
+    tbe_call .ch1_main ; sloppy, will be replaced with loop command when implemented
+
+.ch2_main:
+    tbe_call .ch2_tr0
+    tbe_call .ch2_tr1
+    tbe_call .ch2_tr0
+    tbe_call .ch2_tr2
+    tbe_call .ch2_main
+
+.ch3_main:
+    tbe_call .ch3_tr0
+    tbe_call .ch3_main
+
+.ch4_main:
+    tbe_call .ch4_tr0
+    tbe_call .ch4_tr1
+    tbe_call .ch4_tr0
+    tbe_call .ch4_tr2
+    tbe_call .ch4_main
+
+; CH1 =========================================================================
 
 .ch1_tr0:
     tbe_setTimbre $20
@@ -92,7 +117,7 @@ song_rushingheart::
 
     _pattern_check PATTERN_SIZE
 
-; Channel 2 ---
+; CH2 =========================================================================
 
 .ch2_tr0:
     tbe_setTimbre $20
@@ -250,7 +275,7 @@ song_rushingheart::
 
     _pattern_check PATTERN_SIZE
 
-; Channel 3 ---
+; CH3 =========================================================================
 
 .ch3_tr0:
     tbe_setEnvelope $00
@@ -262,7 +287,7 @@ song_rushingheart::
 
     _pattern_check PATTERN_SIZE
 
-; Channel 4 ---
+; CH4 =========================================================================
 
 DRUM_3 EQU C_6
 DRUM_C EQU C_7
