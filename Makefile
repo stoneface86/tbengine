@@ -80,6 +80,7 @@ OBJ_FILES := demo/main.obj \
              demo/music/stageclear.obj \
              demo/music/nationalpark.obj \
              demo/music/rushingheart.obj \
+             demo/music/calltest.obj \
              demo/music/waveforms.obj \
              $(LIB_OBJ_FILES)
 OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))

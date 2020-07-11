@@ -90,10 +90,9 @@ B_8 EQU 83
 ; special notes
 NOTE_HOLD EQU B_8 + 1           ; "no-op", this occurs when the note column is empty
 NOTE_CUT  EQU B_8 + 2           ; turns sound output for the channel off
-NOTE_RELEASE EQU B_8 + 3        ; TBD
 
 ; the last legal note index
-NOTE_LAST EQU NOTE_RELEASE
+NOTE_LAST EQU NOTE_CUT
 
 ; track data format
 ; rows in a track are made up of a note byte with command bytes and an optional duration byte
@@ -166,6 +165,8 @@ CMD_INSTRUMENT_SET      EQU 17
 CMD_INSTRUMENT_OFF      EQU 18
 CMD_DELAYED_CUT         EQU 19
 CMD_DELAYED_NOTE        EQU 20
+CMD_CALL                EQU 21
+CMD_RET                 EQU 22
 
 ; 21/32 commands used
 
@@ -209,6 +210,15 @@ tbe_duration: MACRO
     STATIC_ASSERT FATAL, (\1) >= 1 && (\1) <= 64, "duration must be between 1 and 64 rows"
     DB $C0 | (\1 - 1)
 _DURATION SET \1
+ENDM
+
+tbe_call: MACRO
+    DB $A0 | CMD_CALL
+    DW \1
+ENDM
+
+tbe_ret: MACRO
+    _makeCmd CMD_RET, 0
 ENDM
 
 ; tbe_goto <orderNo>
