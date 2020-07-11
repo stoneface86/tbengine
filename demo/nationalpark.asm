@@ -47,7 +47,7 @@ natpark_ch4_tr1:
 natpark_ch1_tr1:
     tbe_setTimbre $40
     tbe_setEnvelope $77
-    tbe_setPanning $10
+    tbe_setPanning $01
     tbe_duration 6
     tbe_note G#3
 
@@ -480,7 +480,7 @@ natpark_ch2_tr1:
     tbe_setEnvelope $A7
     tbe_setTimbre $40
     tbe_tempo $48
-    tbe_setPanning $01
+    tbe_setPanning $10
     tbe_duration 6
     tbe_note C#3
     
