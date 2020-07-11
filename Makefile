@@ -77,9 +77,10 @@ LIB_OBJ_FILES := lib/all.obj
 #
 OBJ_FILES := demo/main.obj \
              demo/joypad.obj \
-             demo/samplesong.obj \
-             demo/nationalpark.obj \
-             demo/rushingheart.obj \
+             demo/music/stageclear.obj \
+             demo/music/nationalpark.obj \
+             demo/music/rushingheart.obj \
+             demo/music/waveforms.obj \
              $(LIB_OBJ_FILES)
 OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))
 

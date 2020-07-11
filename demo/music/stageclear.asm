@@ -2,44 +2,18 @@
 INCLUDE "tbengine.inc"
 
 
-SECTION "sample song data", ROM0
+SECTION "song_stageclear", ROM0
 
-tbe_waveTable::
-    DW wave_triangle
-    DW wave_square
-    DW wave_saw
-    DW wave_curved
-    DW wave_pkmn5
-
-wave_triangle:
-    DB $01, $23, $45, $67, $89, $AB, $CD, $EF, $FE, $DC, $BA, $98, $76, $54, $32, $10
-
-; ~60% duty
-wave_square:
-    DB $00, $00, $00, $00, $00, $00, $0A, $AA, $AA, $AA, $AA, $AA, $AA, $AA, $AA, $AA
-
-; double period, same frequency range as CH1/CH2
-wave_saw:
-    DB $01, $23, $45, $67, $89, $AB, $CD, $EF, $01, $23, $45, $67, $89, $AB, $CD, $EF
-
-wave_curved:
-    DB $02, $46, $8A, $CE, $EF, $FF, $FE, $EE, $DD, $CB, $A9, $87, $65, $43, $22, $11
-
-wave_pkmn5:
-    DB $00, $11, $22, $33, $44, $33, $22, $11, $FF, $EE, $CC, $AA, $88, $AA, $CC, $EE
-
-sampleSong::
+stageclear::
     DB $30              ; speed (6.0 frames per row, 150 BPM)
     DB $1 - 1           ; order size
     DB 64 - 1           ; pattern size
-    DW sampleSong_order
+    DW stageclear_order
 
-sampleSong_order:
-    DW sampleSong_ch1_track0, sampleSong_ch2_track0, sampleSong_ch3_track0, sampleSong_ch4_track0
+stageclear_order:
+    DW stageclear_ch1_track0, stageclear_ch2_track0, stageclear_ch3_track0, stageclear_ch4_track0
 
-
-
-sampleSong_ch1_track0:
+stageclear_ch1_track0:
     tbe_duration 16
     tbe_note NOTE_HOLD          ; row 0x00
 
@@ -72,7 +46,7 @@ sampleSong_ch1_track0:
     tbe_instrumentOff
     tbe_note E_5                ; row 0x1F
 
-sampleSong_ch2_track0:
+stageclear_ch2_track0:
     tbe_duration 16
     tbe_note NOTE_HOLD          ; row 0x00
 
@@ -109,7 +83,7 @@ sampleSong_ch2_track0:
     tbe_halt
     tbe_note NOTE_HOLD          ; row 0x3A
 
-sampleSong_ch3_track0:
+stageclear_ch3_track0:
     tbe_duration 1
     tbe_pitchSlideDown $10
     tbe_setEnvelope $00
@@ -188,12 +162,12 @@ sampleSong_ch3_track0:
 
     
 
-sampleSong_ch4_track0:
+stageclear_ch4_track0:
     tbe_duration 64
     tbe_note NOTE_HOLD          ; row 0x00
 
-sampleSong_end:
+stageclear_end:
 
 ; PRINTT "Sample song size: "
-; PRINTI sampleSong_end - sampleSong
+; PRINTI stageclear_end - stageclear
 ; PRINTT "\n"

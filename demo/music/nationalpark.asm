@@ -1,5 +1,5 @@
 
-SECTION "nationalpark_song", ROM0
+SECTION "song_nationalpark", ROM0
 
 INCLUDE "tbengine.inc"
 
