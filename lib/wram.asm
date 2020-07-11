@@ -17,7 +17,7 @@ tbe_wCh2Ptr:            DS 2
 tbe_wCh3Ptr:            DS 2
 tbe_wCh4Ptr:            DS 2
 
-; ========================================================== Quad #0: $00 - $07
+; ========================================================== Quad #1: $08 - $0F
 
 ; return addresses (call/ret commands)
 tbe_wReturn1:           DS 2
@@ -25,7 +25,7 @@ tbe_wReturn2:           DS 2
 tbe_wReturn3:           DS 2
 tbe_wReturn4:           DS 2
 
-; ========================================================== Quad #1: $08 - $0F
+; ========================================================== Quad #2: $10 - $17
 
 tbe_wRowCounter1:       DS 1
 tbe_wRowCounter2:       DS 1
@@ -38,7 +38,7 @@ tbe_wRowDuration2:      DS 1
 tbe_wRowDuration3:      DS 1
 tbe_wRowDuration4:      DS 1
 
-; ========================================================== Quad #2: $10 - $17
+; ========================================================== Quad #3: $18 - $1F
 
 tbe_wStatus:            DS 1
 
@@ -53,31 +53,13 @@ tbe_wTimerPeriod:       DS 1        ; number of frames per row in Q5.3 format
 ; bits 4-7: lock status for CH1-4 (if set channel is unlocked)
 tbe_wChflags:           DS 1
 
-tbe_wOrderCount:        DS 1        ; number of patterns in order less 1
-tbe_wOrderCounter:      DS 1
-tbe_wOrderTable:        DS 2        ; pointer to pattern order table
+;tbe_wOrderCount:        DS 1        ; number of patterns in order less 1
+;tbe_wOrderCounter:      DS 1
+;tbe_wOrderTable:        DS 2        ; pointer to pattern order table
 
-; ========================================================== Quad #3: $18 - $1F
-
-
-tbe_wCurrentOrder:      DS 2        ; pointer to the current order
-
-; stack pointer when tbe_update is called
 tbe_wStack:             DS 2
+                        DS 2         ; maintain alignment
 
-; number of rows remaining in the pattern
-; when this overflows, it's time to load the next pattern
-tbe_wPatternCounter:    DS 1
-; size, in rows - 1, of a pattern
-; the patternCounter is reloaded with this variable when a new pattern plays
-tbe_wPatternSize:       DS 1
-
-; pattern command
-; 00 - do nothing
-; 01 - pattern goto
-; 10 - pattern skip, start at row
-tbe_wPatternCommand:    DS 1
-tbe_wPatternParam:      DS 1
 
 ; ========================================================== Quad #4: $20 - $27
 

@@ -266,29 +266,25 @@ tbe_unlockChannel::
 ; TODO: rewrite using a song id parameter instead of pointer
 ;
 tbe_playSong::
+    push    bc
+    push    de
     push    hl
+
     ld      a, [hl+]                    ; get the speed
     ld      [tbe_wTimerPeriod], a       ; set the timer period to the speed
-    ld      a, [hl+]                    ; get and save the pattern count
-    ld      [tbe_wOrderCount], a
-    ld      a, [hl+]
-    ld      [tbe_wPatternSize], a
-    ld      a, [hl+]
-    ld      [tbe_wOrderTable], a
-    ld      [tbe_wCurrentOrder], a
-    ld      a, [hl+]
-    ld      [tbe_wOrderTable + 1], a
-    ld      [tbe_wCurrentOrder + 1], a
-    ld      a, $0F                      ; initialize chflags
+    ; initialize channel pointers
+    ld      bc, 8
+    ld      de, tbe_wCh1Ptr
+    call    _tbe_memcpy
+    ld      a, [tbe_wChflags]
+    or      a, $0F                       ; initialize chflags (keep lockbits unchanged)
     ld      [tbe_wChflags], a
-    ld      a, PATTERN_CMD_JUMP         ; setup a jump to pattern 0 to initialize chptrs
-    ld      [tbe_wPatternCommand], a
     xor     a
-    ld      [tbe_wPatternParam], a
     ld      [tbe_wTimer], a             ; reset the timer
-    ld      [tbe_wOrderCounter], a
 
     pop     hl
+    pop     de
+    pop     bc
     ret
 
 tbe_playSfx::
@@ -306,39 +302,9 @@ tbe_update::
 
     ld      a, [tbe_wTimer]                 ; check if timer is active (timer < UNIT_SPEED)
     and     a, %11111000
-    jp      nz, .timerNotActive
+    jr      nz, .timerNotActive
 
 ; TIMER ACTIVE ---- (start of new row) ----------------------------------------
-
-    ; apply the pattern effect (jump/skip)
-    ld      a, [tbe_wPatternCommand]
-    cp      a, PATTERN_CMD_JUMP             ; check if a == PATTERN_CMD_JUMP
-    jr      nz, .skipCmd
-    ; jump command
-    ld      a, [tbe_wPatternParam]
-    call    _tbe_gotoOrder
-    jr      .updateCmd
-.skipCmd:
-    cp      a, PATTERN_CMD_SKIP
-    jr      nz, .noCmd
-    ; skip command
-    ld      a, [tbe_wOrderCount]
-    ld      b, a
-    ld      a, [tbe_wOrderCounter]
-    cp      a, b
-    jr      z, .noIncrement                 ; check if the orderCounter == orderCount (last order)
-    inc     a                               ; nope, just increment to the next order
-    jr      .orderCountDone
-.noIncrement:
-    xor     a
-.orderCountDone:
-    call    _tbe_gotoOrder
-    ld      a, [tbe_wPatternParam]
-    call    nz, _tbe_fastforward
-.updateCmd:
-    xor     a
-    ld      [tbe_wPatternCommand], a        ; reset pattern command variable
-.noCmd:
 
     ld      a, [tbe_wChflags]
     ld      c, a
@@ -354,7 +320,7 @@ tbe_update::
 .timerNotActive:
 
 ; UPDATE CHANNELS -------------------------------------------------------------
-    
+
     ld      hl, tbe_wNoteControl4               ; hl = note control variable
     ld      b, 4                                ; b = loop counter
     ld      c, $11 << ENGINE_CHFLAGS_ROWEN4     ; c = lock mask / panning mask
@@ -514,27 +480,6 @@ STATIC_ASSERT FATAL, ENGINE_NC_TRIGGER - ENGINE_NC_AREN == 1, "cannot use rlca h
     dec     l                               ; decrement pointer
     dec     b                               ; decrement counter
     jr      nz, .loopRowCounter
-
-    ; update pattern counter
-    ld      a, [tbe_wPatternCounter]            ; check if patternCounter == 0
-    or      a
-    jr      nz, .decrementPatternCounter
-    ; pattern ended, load next one in the order unless a goto/skip is already scheduled
-    ld      a, [tbe_wPatternCommand]            ; check if patternCommand == 0 (no command set)
-    or      a
-;    jr      nz, .reloadPatternCounter
-    ret     nz
-    ld      a, PATTERN_CMD_SKIP                 ; skip to the next pattern
-    ld      [tbe_wPatternCommand], a
-    xor     a                                   ; clear the param (so we start at row 0)
-    ld      [tbe_wPatternParam], a
-;.reloadPatternCounter:
-;    ld      a, [tbe_wPatternSize] 
-;    jr      .writePatternCounter
-.decrementPatternCounter:
-    dec     a
-;.writePatternCounter:
-    ld      [tbe_wPatternCounter], a
     ret
 .noOverflow:
     ; the timer didn't overflow so we are still in the current row
@@ -672,54 +617,3 @@ ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
     pop     de
     pop     bc
     ret
-
-;
-; Setups up channel pointers to a given index in the order table
-; a: order index
-;
-_tbe_gotoOrder:
-    ld      [tbe_wOrderCounter], a
-    ld      d, a
-
-    ld      a, [tbe_wOrderTable]            ; bc = order table
-    ld      c, a
-    ld      a, [tbe_wOrderTable + 1]
-    ld      b, a
-
-    ; an order is 4 pointers or 8 bytes, so we need to multiply patternParam by 8
-    ld      h, 0                            ; hl = order index
-    ld      l, d
-    add     hl, hl                          ; shift left 3 times
-    add     hl, hl
-    add     hl, hl
-    add     hl, bc                          ; offset the order table
-    ld      de, tbe_wCh1Ptr                 ; copy the order to the channel pointers
-    ld      b, 0
-    ld      c, 8
-    call    _tbe_memcpy
-
-    ld      a, [tbe_wChflags]
-    or      a, $0F                          ; new row for all channels
-    ld      [tbe_wChflags], a
-
-    xor     a                               ; reset row counters and durations
-    ld      hl, tbe_wRowCounter1
-    REPT 8
-    ld      [hl+], a
-    ENDR
-
-    ld      a, [tbe_wPatternSize]
-    ld      [tbe_wPatternCounter], a
-
-    ret
-
-;
-; Adjusts row counters and channel pointers to start playing at a given row. The
-; pattern is stepped through without applying effects so that we can start playing
-; from a given row
-; a - the row to start at
-;
-_tbe_fastforward:
-    ; TODO implement fast forward
-    ret
-

@@ -68,16 +68,20 @@ _tbe_cmdFnRet:
     cmd_ret
 
 _tbe_cmdFnGoto:
-    ld      b, PATTERN_CMD_JUMP
-    jr      _tbe_cmdFnSkip.setPatternCmd
-
 _tbe_cmdFnSkip:
-    ld      b, PATTERN_CMD_SKIP
-.setPatternCmd:
-    ld      [tbe_wPatternParam], a
-    ld      a, b
-    ld      [tbe_wPatternCommand], a
     cmd_ret
+
+; _tbe_cmdFnGoto:
+;     ld      b, PATTERN_CMD_JUMP
+;     jr      _tbe_cmdFnSkip.setPatternCmd
+
+; _tbe_cmdFnSkip:
+;     ld      b, PATTERN_CMD_SKIP
+; .setPatternCmd:
+;     ld      [tbe_wPatternParam], a
+;     ld      a, b
+;     ld      [tbe_wPatternCommand], a
+;     cmd_ret
 
 _tbe_cmdFnHalt:
     ld      a, [tbe_wStatus]            ; set the halted bit in status

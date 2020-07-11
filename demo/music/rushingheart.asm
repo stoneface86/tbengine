@@ -10,16 +10,10 @@ PATTERN_SIZE EQU 64
 
 song_rushingheart::
     DB $11              ; speed (2.125 frames per row, ~420 BPM)
-    DB 1 - 1
-    DB 64 - 1
-    DW .order
-;    DW .ch1_main
-;    DW .ch2_main
-;    DW .ch3_main
-;    DW .ch4_main
-
-.order:
-    DW .ch1_main, .ch2_main, .ch3_main, .ch4_main
+    DW .ch1_main
+    DW .ch2_main
+    DW .ch3_main
+    DW .ch4_main
 
 .ch1_main:
     tbe_call .ch1_tr0
@@ -115,6 +109,8 @@ song_rushingheart::
     tbe_duration 1
     tbe_note NOTE_CUT
 
+    tbe_ret
+
     _pattern_check PATTERN_SIZE
 
 ; CH2 =========================================================================
@@ -165,6 +161,8 @@ song_rushingheart::
 
     tbe_note G_2
 
+    tbe_ret
+
     _pattern_check PATTERN_SIZE
 
 .ch2_tr1:
@@ -210,6 +208,8 @@ song_rushingheart::
     tbe_note G_2
 
     tbe_note F_2
+
+    tbe_ret
 
     _pattern_check PATTERN_SIZE
 
@@ -273,6 +273,8 @@ song_rushingheart::
 
     tbe_note A#2
 
+    tbe_ret
+
     _pattern_check PATTERN_SIZE
 
 ; CH3 =========================================================================
@@ -284,6 +286,8 @@ song_rushingheart::
 
     tbe_duration 52
     tbe_note NOTE_CUT
+
+    tbe_ret
 
     _pattern_check PATTERN_SIZE
 
@@ -320,6 +324,8 @@ DRUM_7 EQU F_6
 
     tbe_note DRUM_C
 
+    tbe_ret
+
     _pattern_check PATTERN_SIZE
 
 .ch4_tr1:
@@ -348,6 +354,8 @@ DRUM_7 EQU F_6
     tbe_note DRUM_3
 
     tbe_note DRUM_7
+
+    tbe_ret
 
     _pattern_check PATTERN_SIZE
 
@@ -382,6 +390,8 @@ DRUM_7 EQU F_6
     tbe_note DRUM_7
 
     tbe_note DRUM_7
+
+    tbe_ret
 
     _pattern_check PATTERN_SIZE
 
