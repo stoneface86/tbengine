@@ -14,6 +14,59 @@ cmd_ret_cc: MACRO
     jp      \1, _tbe_parseRow.cmdExit
 ENDM
 
+; Stack contents at time of command function call
+;           |                 |
+;           | ???             |
+;        +4 +-----------------+
+;           | channel pointer |
+;        +2 +-----------------+
+;           | saved bc        |
+; sp =>  +0 +-----------------+
+;           | ???             |
+
+CHPTR_OFFSET EQU 2
+
+_tbe_cmdFnCall:
+; call has two parameters (2 bytes for the call address)
+    ld      hl, sp + CHPTR_OFFSET       ; get channel pointer from the stack
+    ld      c, a                        ; parameter is low byte of call address
+    ld      a, [hl+]
+    ld      e, a
+    ld      a, [hl-]
+    ld      d, a                        ; de = channel pointer
+    ld      a, [de]                     ; extra parameter is the high byte of call address
+    ld      b, a                        ; bc = call address
+    inc     de                          ; de is now the return address
+    ; bc is the address we will jump to, so we put bc into the stack at CHPTR_OFFSET
+    ld      a, c
+    ld      [hl+], a                    ; store call address to channel pointer in stack
+    ld      a, b
+    ld      [hl-], a
+    dec     hl                          ; hl now points to saved b register (channel id)
+    ld      b, [hl]                     ; restore channel id
+    ld      h, HIGH(tbe_wReturn1)       ; hl = return address variable
+    ld      a, LOW(tbe_wReturn1)
+    add     a, b
+    add     a, b
+    ld      l, a
+    ld      a, e                        ; store de to variable
+    ld      [hl+], a
+    ld      [hl], d
+    cmd_ret
+
+_tbe_cmdFnRet:
+    ld      h, HIGH(tbe_wReturn1)
+    ld      a, LOW(tbe_wReturn1)
+    add     a, b
+    add     a, b
+    ld      l, a
+    ld      a, [hl+]                    ; "ba" = return address
+    ld      b, [hl]
+    ld      hl, sp + CHPTR_OFFSET       ; current channel pointer is located here on the stack
+    ld      [hl+], a
+    ld      [hl], b
+    cmd_ret
+
 _tbe_cmdFnGoto:
     ld      b, PATTERN_CMD_JUMP
     jr      _tbe_cmdFnSkip.setPatternCmd
@@ -48,11 +101,7 @@ _tbe_cmdFnHalt:
 
 _tbe_cmdFnTempo:
     ; parameter 1, a - new speed to set
-    ; check if a is >= 8 and < $F8
-    cp      a, $8
-    cmd_ret_cc c                         ; no-op if new speed < $8 (1.0)
-    cp      a, $F8
-    cmd_ret_cc nc                       ; no-op if new speed >= $F8 (31.0)
+    ; don't check if the speed is in range, this will be done statically
     ld      [tbe_wTimerPeriod], a       ; set the new period
     xor     a                           ; clear the current timer
     ld      [tbe_wTimer], a

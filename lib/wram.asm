@@ -17,6 +17,14 @@ tbe_wCh2Ptr:            DS 2
 tbe_wCh3Ptr:            DS 2
 tbe_wCh4Ptr:            DS 2
 
+; ========================================================== Quad #0: $00 - $07
+
+; return addresses (call/ret commands)
+tbe_wReturn1:           DS 2
+tbe_wReturn2:           DS 2
+tbe_wReturn3:           DS 2
+tbe_wReturn4:           DS 2
+
 ; ========================================================== Quad #1: $08 - $0F
 
 tbe_wRowCounter1:       DS 1
