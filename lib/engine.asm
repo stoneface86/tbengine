@@ -552,7 +552,8 @@ ASSERT FATAL, (tbe_wCutCounter1 - tbe_wNoteCounter1) == 4, "Note and cut counter
     ld      a, d                    ; restore command byte
 
     and     a, $1F                  ; a = command index
-    rla                             ; multiply by 2
+    rlca                            ; multiply by 2
+    push    bc
     push    hl                      ; save hl for later
 
 ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
@@ -567,11 +568,12 @@ ASSERT FATAL, LOW(tbe_dCommandTable) == 0, "command table is mis-aligned"
     ld      l, e
     
     ld      a, c                    ; restore parameter
-    push    bc
+    
     jp      hl                      ; goto command
 .cmdExit:                           ; command will return here when finished
-    pop     bc
     pop     hl
+    pop     bc
+    
     
 
     jr      .getbyte                ; keep going

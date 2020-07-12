@@ -43,9 +43,12 @@ RGBGFX := rgbgfx
 #
 BGB := bgb
 
-ASM_FLAGS := -i $(INC_DIR) -E
-LINK_FLAGS := -m $(ROM_MAP) -n $(ROM_SYM)
-FIX_FLAGS := -f lhg -i "$(ROM_ID)" -t "$(ROM_TITLE)" -p 0x0
+# pad with $D3, illegal opcode
+PAD_VALUE := 0xD3
+
+ASM_FLAGS := -i $(INC_DIR) -E -p $(PAD_VALUE)
+LINK_FLAGS := -m $(ROM_MAP) -n $(ROM_SYM) -p $(PAD_VALUE)
+FIX_FLAGS := -f lhg -i "$(ROM_ID)" -t "$(ROM_TITLE)" -p $(PAD_VALUE)
 DEFINES := -D TBE_ROM0
 
 # (optional) user-specific overrides

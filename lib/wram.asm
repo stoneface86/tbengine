@@ -134,6 +134,11 @@ tbe_wChannelSettingsEnd:
 ; Used by cmdFn's
 tbe_wCurrentChLocked:   DS 1
 
+tbe_wLoopCounter1:      DS 1
+tbe_wLoopCounter2:      DS 1
+tbe_wLoopCounter3:      DS 1
+tbe_wLoopCounter4:      DS 1
+
 
 ; END OF QUAD WORD ALIGNMENT
 

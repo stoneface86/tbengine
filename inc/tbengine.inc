@@ -146,27 +146,28 @@ NOTE_LAST EQU NOTE_CUT
 ; Command indices
 CMD_CALL                EQU 0
 CMD_RET                 EQU 1
-CMD_HALT                EQU 2
-CMD_TEMPO               EQU 3
-CMD_SFX                 EQU 4
-CMD_SFX_STOP            EQU 5
-CMD_ARP                 EQU 6
-CMD_PITCH_SLIDE_UP      EQU 7
-CMD_PITCH_SLIDE_DOWN    EQU 8
-CMD_NOTE_SLIDE_UP       EQU 9
-CMD_NOTE_SLIDE_DOWN     EQU 10
-CMD_TUNE                EQU 11
-CMD_PORTAMENTO          EQU 12
-CMD_VIBRATO             EQU 13
-CMD_SET_ENVELOPE        EQU 14
-CMD_SET_TIMBRE          EQU 15
-CMD_SET_PANNING         EQU 16
-CMD_INSTRUMENT_SET      EQU 17
-CMD_INSTRUMENT_OFF      EQU 18
-CMD_DELAYED_CUT         EQU 19
-CMD_DELAYED_NOTE        EQU 20
+CMD_LOOP                EQU 2
+CMD_HALT                EQU 3
+CMD_TEMPO               EQU 4
+CMD_SFX                 EQU 5
+CMD_SFX_STOP            EQU 6
+CMD_ARP                 EQU 7
+CMD_PITCH_SLIDE_UP      EQU 8
+CMD_PITCH_SLIDE_DOWN    EQU 9
+CMD_NOTE_SLIDE_UP       EQU 10
+CMD_NOTE_SLIDE_DOWN     EQU 11
+CMD_TUNE                EQU 12
+CMD_PORTAMENTO          EQU 13
+CMD_VIBRATO             EQU 14
+CMD_SET_ENVELOPE        EQU 15
+CMD_SET_TIMBRE          EQU 16
+CMD_SET_PANNING         EQU 17
+CMD_INSTRUMENT_SET      EQU 18
+CMD_INSTRUMENT_OFF      EQU 19
+CMD_DELAYED_CUT         EQU 20
+CMD_DELAYED_NOTE        EQU 21
 
-; 21/32 commands used
+; 22/32 commands used
 
 
 ; \1 - command index
@@ -210,13 +211,27 @@ tbe_duration: MACRO
 _DURATION SET \1
 ENDM
 
+; tbe_call <addr>
 tbe_call: MACRO
     DB $A0 | CMD_CALL
     DW \1
 ENDM
 
+; tbe_ret
 tbe_ret: MACRO
     _makeCmd CMD_RET, 0
+ENDM
+
+; tbe_loop <count>, <addr>
+tbe_loop: MACRO
+    _makeCmd CMD_LOOP, \1
+    DW \2
+ENDM
+
+; pseudo-command
+; tbe_jump <addr>
+tbe_jump: MACRO
+    tbe_loop 0, \1
 ENDM
 
 ; tbe_halt

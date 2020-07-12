@@ -4,33 +4,32 @@ INCLUDE "tbengine.inc"
 SECTION "song_calltest", ROM0
 
 song_calltest::
-    DB $30              ; speed (6.0 frames per row, 150 BPM)
-    DB $1 - 1           ; order size
-    DB 64 - 1           ; pattern size
-    DW .order
+    DB $18              ; speed (3.0 frames per row, 900 BPM)
+    DW .ch1_main
+    DW .ch2_main
+    DW .ch3_main
+    DW .ch4_main
 
-.order:
-    DW .ch1_tr0, .ch2_tr0, .ch3_tr0, .ch4_tr0
+.ch1_main:
+    tbe_duration 1
+    tbe_setTimbre $40
+.loop1:
+    tbe_note C_5
+    tbe_note D#5
+    tbe_note G#5
+    tbe_note C_5
+    tbe_loop 1, .loop1
+.loop2:
+    tbe_note D_5
+    tbe_note F#5
+    tbe_note A#5
+    tbe_note D_5
+    tbe_loop 2, .loop2
+    tbe_jump .ch1_main
 
-.sub1:
-    tbe_duration 4
-    tbe_note C_4
-
-    tbe_note C#4
-
-    tbe_note F_4
-
-    tbe_ret
-
-.ch1_tr0:
-    tbe_call .sub1
-    tbe_call .sub1
-
-    tbe_duration 40
-    tbe_note NOTE_HOLD
-
-.ch2_tr0:
-.ch3_tr0:
-.ch4_tr0:
+.ch2_main:
+.ch3_main:
+.ch4_main:
     tbe_duration 64
     tbe_note NOTE_HOLD
+    tbe_jump .ch2_main

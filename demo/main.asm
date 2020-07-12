@@ -92,8 +92,8 @@ Start:
     call    tbe_init
     
     ;ld      hl, song_rushingheart
-    ld      hl, song_natpark
-    ;ld      hl, song_calltest
+    ;ld      hl, song_natpark
+    ld      hl, song_calltest
     call    tbe_playSong
 
     call    joypad_init
