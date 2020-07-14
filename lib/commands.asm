@@ -134,7 +134,7 @@ _tbe_cmdFnTempo:
 _tbe_cmdFnSfx:
     cmd_ret
 
-_tbe_cmdFnSfxStop:
+_tbe_cmdFnLock:
     cmd_ret
 
 _tbe_cmdFnArp:
@@ -159,6 +159,9 @@ _tbe_cmdFnPortamento:
     cmd_ret
 
 _tbe_cmdFnVibrato:
+    cmd_ret
+
+_tbe_cmdFnVibratoDelay:
     cmd_ret
 
 ;
@@ -213,9 +216,38 @@ _tbe_cmdFnSetEnvelope:
 .exit:
     cmd_ret
 
-_tbe_cmdFnSetTimbre:
+_tbe_cmdFnSetInstrument:
+    cmd_ret
+
+
+_tbe_dTimbreTable:
+    DB $00, $00, $00, $00
+    DB $40, $40, $20, $08
+    DB $80, $80, $40, $08
+    DB $C0, $C0, $60, $08
+
+_tbe_cmdFnTimbre0:
+    ld      de, _tbe_dTimbreTable
+    jr      _tbe_cmdFnTimbre3.setTimbre
+
+_tbe_cmdFnTimbre1:
+    ld      de, _tbe_dTimbreTable + 4
+    jr      _tbe_cmdFnTimbre3.setTimbre
+
+_tbe_cmdFnTimbre2:
+    ld      de, _tbe_dTimbreTable + 8
+    jr      _tbe_cmdFnTimbre3.setTimbre
+
+_tbe_cmdFnTimbre3:
+    ld      de, _tbe_dTimbreTable + 12
+.setTimbre:
+    ld      h, 0
+    ld      l, b
+    add     hl, de
+    ld      a, [hl]
     ld      hl, tbe_wTimbre1            ; load timbre variable
     call    _tbe_setChParam             ; store parameter in variable
+    ld      c, a
     ld      a, [tbe_wCurrentChLocked]
     or      a
     jr      nz, .exit                   ; do not write timbre if channel is unlocked
@@ -236,7 +268,17 @@ _tbe_cmdFnSetTimbre:
 .exit:
     cmd_ret
 
-_tbe_cmdFnSetPanning:
+_tbe_cmdFnPanLeft:
+    ld      a, $10
+    jr      _tbe_cmdFnPanMiddle.setPanning
+
+_tbe_cmdFnPanRight:
+    ld      a, $01
+    jr      _tbe_cmdFnPanMiddle.setPanning
+
+_tbe_cmdFnPanMiddle:
+    ld      a, $11
+.setPanning:
     chjumptable
 .ch4:
     rrca
@@ -263,12 +305,6 @@ _tbe_cmdFnSetPanning:
     ld      [tbe_wPanning], a
     ld      hl, tbe_wStatus
     set     ENGINE_FLAGS_PANNING, [hl]
-    cmd_ret
-
-_tbe_cmdFnInstrumentSet:
-    cmd_ret
-
-_tbe_cmdFnInstrumentOff:
     cmd_ret
 
 _delayCmd: MACRO

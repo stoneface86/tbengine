@@ -16,9 +16,9 @@ song_natpark::
 ; CH1 =========================================================================
 
 .ch1_entry:
-    tbe_setTimbre $40
+    tbe_timbre1 ; tbe_setTimbre $40
     tbe_setEnvelope $77
-    tbe_setPanning $01
+    tbe_panRight ; tbe_setPanning $01
     tbe_duration 2
     tbe_note NOTE_HOLD
 .ch1_main:
@@ -473,8 +473,8 @@ song_natpark::
 ; CH2 =========================================================================
 
 .ch2_entry:
-    tbe_setPanning $10
-    tbe_setTimbre $40
+    tbe_panLeft ; tbe_setPanning $10
+    tbe_timbre1 ; tbe_setTimbre $40
     tbe_duration 2
     tbe_note NOTE_HOLD
 .ch2_main:

@@ -17,7 +17,7 @@ song_stageclear::
     tbe_note NOTE_HOLD          ; row 0x00
 
     tbe_setEnvelope $E0
-    tbe_instrumentSet 0
+    tbe_setInstrument 0
     tbe_duration 1
     tbe_note A_4                ; row 0x10
 
@@ -42,7 +42,6 @@ song_stageclear::
     tbe_note D#5                ; row 0x1E
     tbe_duration 28
     tbe_setEnvelope $E7
-    tbe_instrumentOff
     tbe_note E_5                ; row 0x1F
 
 .ch2_main:
@@ -50,7 +49,7 @@ song_stageclear::
     tbe_note NOTE_HOLD          ; row 0x00
 
     tbe_setEnvelope $E0
-    tbe_instrumentSet 0
+    tbe_setInstrument 0
     tbe_duration 1
     tbe_note C#5                ; row 0x10
 
@@ -75,7 +74,6 @@ song_stageclear::
     tbe_note F#5                ; row 0x1E
     tbe_duration 27
     tbe_setEnvelope $E7
-    tbe_instrumentOff
     tbe_note G#5                ; row 0x1F
     
     tbe_duration 1
@@ -86,16 +84,14 @@ song_stageclear::
     tbe_duration 1
     tbe_pitchSlideDown $10
     tbe_setEnvelope $00
-    tbe_setTimbre $20
     tbe_note G#5                ; row 0x00
 
-    tbe_instrumentSet 0
+    tbe_setInstrument 0
     tbe_note NOTE_HOLD          ; row 0x01
 
-    tbe_instrumentOff
     tbe_note G#5                ; row 0x02
 
-    tbe_instrumentSet 0
+    tbe_setInstrument 0
     tbe_note NOTE_HOLD          ; row 0x03
 
     tbe_note G#5                ; row 0x04
@@ -106,16 +102,16 @@ song_stageclear::
 
     tbe_duration 1
     tbe_pitchSlideDown $0E
-    tbe_instrumentOff
+
     tbe_note D_5                ; row 0x07
 
-    tbe_instrumentSet 0
+    tbe_setInstrument 0
     tbe_note NOTE_HOLD          ; row 0x08
 
-    tbe_instrumentOff
+
     tbe_note D_5                ; row 0x09
 
-    tbe_instrumentSet 0
+    tbe_setInstrument 0
     tbe_note NOTE_HOLD          ; row 0x0A
 
     tbe_note D_5                ; row 0x0B
@@ -152,11 +148,10 @@ song_stageclear::
     tbe_note B_3                ; row 0x1E
 
     tbe_duration 24
-    tbe_instrumentOff
     tbe_note B_3                ; row 0x1F
 
     tbe_duration 4
-    tbe_instrumentSet 0
+    tbe_setInstrument 0
     tbe_note NOTE_HOLD          ; row 0x37
 
 .ch4_main:

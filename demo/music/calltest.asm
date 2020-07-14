@@ -12,7 +12,7 @@ song_calltest::
 
 .ch1_main:
     tbe_duration 1
-    tbe_setTimbre $40
+    tbe_timbre1
 .loop1:
     tbe_note C_5
     tbe_note D#5

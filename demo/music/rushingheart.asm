@@ -40,7 +40,7 @@ song_rushingheart::
 ; CH1 =========================================================================
 
 .ch1_tr0:
-    tbe_setTimbre $20
+    tbe_timbre1
     tbe_setEnvelope $A7
     tbe_duration 7
     tbe_note G_3
@@ -116,7 +116,7 @@ song_rushingheart::
 ; CH2 =========================================================================
 
 .ch2_tr0:
-    tbe_setTimbre $20
+    tbe_timbre1
     tbe_setEnvelope $57
     tbe_duration 8
     tbe_note G_5
@@ -124,7 +124,7 @@ song_rushingheart::
     tbe_duration 4
     tbe_note NOTE_CUT
 
-    tbe_setTimbre $00
+    tbe_timbre0
     tbe_setEnvelope $77
     tbe_note F_3
 
@@ -166,12 +166,12 @@ song_rushingheart::
     _pattern_check PATTERN_SIZE
 
 .ch2_tr1:
-    tbe_setTimbre $20
+    tbe_timbre1
     tbe_setEnvelope $57
     tbe_duration 12
     tbe_note G_5
 
-    tbe_setTimbre $00
+    tbe_timbre0
     tbe_setEnvelope $77
     tbe_duration 4
     tbe_note F_3
@@ -214,7 +214,7 @@ song_rushingheart::
     _pattern_check PATTERN_SIZE
 
 .ch2_tr2:
-    tbe_setTimbre $20
+    tbe_timbre1
     tbe_setEnvelope $57
     tbe_duration 8
     tbe_note G_5
@@ -222,7 +222,7 @@ song_rushingheart::
     tbe_duration 4
     tbe_note NOTE_CUT
 
-    tbe_setTimbre $00
+    tbe_timbre0
     tbe_setEnvelope $77
     tbe_note F_3
 

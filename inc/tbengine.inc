@@ -144,13 +144,17 @@ NOTE_LAST EQU NOTE_CUT
 ; $C0-$FF: duration byte (sets the default duration for notes)
 
 ; Command indices
+
+; flow control
 CMD_CALL                EQU 0
 CMD_RET                 EQU 1
 CMD_LOOP                EQU 2
+; global settings
 CMD_HALT                EQU 3
 CMD_TEMPO               EQU 4
 CMD_SFX                 EQU 5
-CMD_SFX_STOP            EQU 6
+CMD_LOCK                EQU 6
+; frequency commands
 CMD_ARP                 EQU 7
 CMD_PITCH_SLIDE_UP      EQU 8
 CMD_PITCH_SLIDE_DOWN    EQU 9
@@ -159,15 +163,23 @@ CMD_NOTE_SLIDE_DOWN     EQU 11
 CMD_TUNE                EQU 12
 CMD_PORTAMENTO          EQU 13
 CMD_VIBRATO             EQU 14
-CMD_SET_ENVELOPE        EQU 15
-CMD_SET_TIMBRE          EQU 16
-CMD_SET_PANNING         EQU 17
-CMD_INSTRUMENT_SET      EQU 18
-CMD_INSTRUMENT_OFF      EQU 19
-CMD_DELAYED_CUT         EQU 20
-CMD_DELAYED_NOTE        EQU 21
+CMD_VIBRATO_DELAY       EQU 15
+; channel settings
+CMD_SET_ENVELOPE        EQU 16
+CMD_SET_INSTRUMENT      EQU 17
+CMD_TIMBRE_0            EQU 18
+CMD_TIMBRE_1            EQU 19
+CMD_TIMBRE_2            EQU 20
+CMD_TIMBRE_3            EQU 21
+CMD_PAN_LEFT            EQU 22
+CMD_PAN_RIGHT           EQU 23
+CMD_PAN_MIDDLE          EQU 24
+; note delays
+CMD_DELAYED_CUT         EQU 25
+CMD_DELAYED_NOTE        EQU 26
 
-; 22/32 commands used
+
+; 27/32 commands used
 
 
 ; \1 - command index
@@ -250,9 +262,9 @@ tbe_sfx: MACRO
     _makeCmd CMD_SFX, \1
 ENDM
 
-; tbe_sfxStop
-tbe_sfxStop: MACRO
-    _makeCmd CMD_SFX_STOP, 0
+; tbe_lock
+tbe_lock: MACRO
+    _makeCmd CMD_LOCK, 0
 ENDM
 
 ; tbe_arp <param>
@@ -277,24 +289,48 @@ tbe_vibrato: MACRO
     _makeCmd CMD_VIBRATO, \1
 ENDM
 
+tbe_vibratoDelay: MACRO
+    _makeCmd CMD_VIBRATO_DELAY, \1
+ENDM
+
 tbe_setEnvelope: MACRO
     _makeCmd CMD_SET_ENVELOPE, \1
 ENDM
 
-tbe_setTimbre: MACRO
-    _makeCmd CMD_SET_TIMBRE, \1
+tbe_setInstrument: MACRO
+    _makeCmd CMD_SET_INSTRUMENT, \1
 ENDM
 
-tbe_setPanning: MACRO
-    _makeCmd CMD_SET_PANNING, \1
+tbe_timbre0: MACRO
+    _makeCmd CMD_TIMBRE_0, 0
 ENDM
 
-tbe_instrumentSet: MACRO
-    _makeCmd CMD_INSTRUMENT_SET, \1
+tbe_timbre1: MACRO
+    _makeCmd CMD_TIMBRE_1, 0
 ENDM
 
-tbe_instrumentOff: MACRO
-    _makeCmd CMD_INSTRUMENT_OFF, 0
+tbe_timbre2: MACRO
+    _makeCmd CMD_TIMBRE_2, 0
+ENDM
+
+tbe_timbre3: MACRO
+    _makeCmd CMD_TIMBRE_3, 0
+ENDM
+
+tbe_panLeft: MACRO
+    _makeCmd CMD_PAN_LEFT, 0
+ENDM
+
+tbe_panRight: MACRO
+    _makeCmd CMD_PAN_RIGHT, 0
+ENDM
+
+tbe_panMiddle: MACRO
+    _makeCmd CMD_PAN_MIDDLE, 0
+ENDM
+
+tbe_delayedNote: MACRO
+    _makeCmd CMD_DELAYED_NOTE, \1
 ENDM
 
 tbe_delayedCut: MACRO

@@ -44,7 +44,7 @@ tbe_dCommandTable:
     DW _tbe_cmdFnHalt
     DW _tbe_cmdFnTempo
     DW _tbe_cmdFnSfx
-    DW _tbe_cmdFnSfxStop
+    DW _tbe_cmdFnLock
     DW _tbe_cmdFnArp
     DW _tbe_cmdFnPitchSlideUp
     DW _tbe_cmdFnPitchSlideDown
@@ -53,11 +53,16 @@ tbe_dCommandTable:
     DW _tbe_cmdFnTune
     DW _tbe_cmdFnPortamento
     DW _tbe_cmdFnVibrato
+    DW _tbe_cmdFnVibratoDelay
     DW _tbe_cmdFnSetEnvelope
-    DW _tbe_cmdFnSetTimbre
-    DW _tbe_cmdFnSetPanning
-    DW _tbe_cmdFnInstrumentSet
-    DW _tbe_cmdFnInstrumentOff
+    DW _tbe_cmdFnSetInstrument
+    DW _tbe_cmdFnTimbre0
+    DW _tbe_cmdFnTimbre1
+    DW _tbe_cmdFnTimbre2
+    DW _tbe_cmdFnTimbre3
+    DW _tbe_cmdFnPanLeft
+    DW _tbe_cmdFnPanRight
+    DW _tbe_cmdFnPanMiddle
     DW _tbe_cmdFnDelayedCut
     DW _tbe_cmdFnDelayedNote
 
