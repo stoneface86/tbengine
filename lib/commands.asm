@@ -26,6 +26,14 @@ ENDM
 
 CHPTR_OFFSET EQU 2
 
+_tbe_cmdFnJump:
+    ld      e, a
+    pop     hl
+    ld      a, [hl]
+    ld      d, a
+    push    de
+    cmd_ret
+
 _tbe_cmdFnCall:
 ; call has two parameters (2 bytes for the call address)
     ld      e, a                        ; parameter is low byte of call address
@@ -58,7 +66,21 @@ _tbe_cmdFnRet:
     push    bc                          ; update with return address
     cmd_ret
 
-_tbe_cmdFnLoop:
+_tbe_cmdFnLoopBegin:
+    ld      hl, sp + 0
+    ld      d, HIGH(tbe_wLoopReturn1)
+    ld      a, LOW(tbe_wLoopReturn1)
+    add     a, b
+    add     a, b
+    ld      e, a
+    ld      a, [hl+]
+    ld      [de], a
+    inc     de
+    ld      a, [hl]
+    ld      [de], a
+    cmd_ret
+
+_tbe_cmdFnLoopEnd:
 
     ; three outcomes of this command:
     ; [1]: A loop is started, branch taken
@@ -73,7 +95,7 @@ _tbe_cmdFnLoop:
     ; if we are not in a loop, set one up
     ; otherwise, decrement counter and do branch
     ld      h, HIGH(tbe_wLoopCounter1)
-    ld      a, LOW(tbe_wLoopCounter2)
+    ld      a, LOW(tbe_wLoopCounter1)
     add     a, b
     ld      l, a
     ld      a, [hl]                     ; a = loop counter
@@ -84,10 +106,10 @@ _tbe_cmdFnLoop:
     jr      nz, .branch
     ; [3] counter is zero, stop looping (do not take branch)
     ld      [hl], a                     ; update counter
-    pop     hl                          ; advance channel pointer by 2 (throw away loop address)
-    inc     hl                          ; there's probably a better way of doing this
-    inc     hl
-    push    hl
+    ;pop     hl                          ; advance channel pointer by 2 (throw away loop address)
+    ;inc     hl                          ; there's probably a better way of doing this
+    ;inc     hl
+    ;push    hl
     cmd_ret
 .loopNotSet:
     ; [1]
@@ -95,12 +117,24 @@ _tbe_cmdFnLoop:
 .branch:
     ; loop, take branch
     ld      [hl], a                     ; update counter
-    pop     hl
-    ld      a, [hl+]
+    ld      hl, sp + 0
+    ld      d, HIGH(tbe_wLoopReturn1)
+    ld      a, LOW(tbe_wLoopReturn1)
+    add     a, b
+    add     a, b
     ld      e, a
-    ld      a, [hl+]
-    ld      d, a                        ; de = loop address
-    push    de                          ; update channel pointer
+    ld      a, [de]
+    inc     de
+    ld      [hl+], a
+    ld      a, [de]
+    ld      [hl], a
+    
+    ; pop     hl
+    ; ld      a, [hl+]
+    ; ld      e, a
+    ; ld      a, [hl+]
+    ; ld      d, a                        ; de = loop address
+    ; push    de                          ; update channel pointer
     cmd_ret
 
 _tbe_cmdFnHalt:

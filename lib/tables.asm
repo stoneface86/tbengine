@@ -38,9 +38,11 @@ tbe_dVibratoTable::
 ;
 tbe_dCommandTable:
     ; effect commands
+    DW _tbe_cmdFnJump
     DW _tbe_cmdFnCall
     DW _tbe_cmdFnRet
-    DW _tbe_cmdFnLoop
+    DW _tbe_cmdFnLoopBegin
+    DW _tbe_cmdFnLoopEnd
     DW _tbe_cmdFnHalt
     DW _tbe_cmdFnTempo
     DW _tbe_cmdFnSfx

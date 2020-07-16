@@ -139,6 +139,13 @@ tbe_wLoopCounter2:      DS 1
 tbe_wLoopCounter3:      DS 1
 tbe_wLoopCounter4:      DS 1
 
+DS 1
+
+tbe_wLoopReturn1:       DS 2
+tbe_wLoopReturn2:       DS 2
+tbe_wLoopReturn3:       DS 2
+tbe_wLoopReturn4:       DS 2
+
 
 ; END OF QUAD WORD ALIGNMENT
 

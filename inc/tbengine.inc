@@ -146,40 +146,42 @@ NOTE_LAST EQU NOTE_CUT
 ; Command indices
 
 ; flow control
-CMD_CALL                EQU 0
-CMD_RET                 EQU 1
-CMD_LOOP                EQU 2
+CMD_JUMP                EQU 0
+CMD_CALL                EQU 1
+CMD_RET                 EQU 2
+CMD_LOOP_BEGIN          EQU 3
+CMD_LOOP_END            EQU 4
 ; global settings
-CMD_HALT                EQU 3
-CMD_TEMPO               EQU 4
-CMD_SFX                 EQU 5
-CMD_LOCK                EQU 6
+CMD_HALT                EQU 5
+CMD_TEMPO               EQU 6
+CMD_SFX                 EQU 7
+CMD_LOCK                EQU 8
 ; frequency commands
-CMD_ARP                 EQU 7
-CMD_PITCH_SLIDE_UP      EQU 8
-CMD_PITCH_SLIDE_DOWN    EQU 9
-CMD_NOTE_SLIDE_UP       EQU 10
-CMD_NOTE_SLIDE_DOWN     EQU 11
-CMD_TUNE                EQU 12
-CMD_PORTAMENTO          EQU 13
-CMD_VIBRATO             EQU 14
-CMD_VIBRATO_DELAY       EQU 15
+CMD_ARP                 EQU 9
+CMD_PITCH_SLIDE_UP      EQU 10
+CMD_PITCH_SLIDE_DOWN    EQU 11
+CMD_NOTE_SLIDE_UP       EQU 12
+CMD_NOTE_SLIDE_DOWN     EQU 13
+CMD_TUNE                EQU 14
+CMD_PORTAMENTO          EQU 15
+CMD_VIBRATO             EQU 16
+CMD_VIBRATO_DELAY       EQU 17
 ; channel settings
-CMD_SET_ENVELOPE        EQU 16
-CMD_SET_INSTRUMENT      EQU 17
-CMD_TIMBRE_0            EQU 18
-CMD_TIMBRE_1            EQU 19
-CMD_TIMBRE_2            EQU 20
-CMD_TIMBRE_3            EQU 21
-CMD_PAN_LEFT            EQU 22
-CMD_PAN_RIGHT           EQU 23
-CMD_PAN_MIDDLE          EQU 24
+CMD_SET_ENVELOPE        EQU 18
+CMD_SET_INSTRUMENT      EQU 19
+CMD_TIMBRE_0            EQU 20
+CMD_TIMBRE_1            EQU 21
+CMD_TIMBRE_2            EQU 22
+CMD_TIMBRE_3            EQU 23
+CMD_PAN_LEFT            EQU 24
+CMD_PAN_RIGHT           EQU 25
+CMD_PAN_MIDDLE          EQU 26
 ; note delays
-CMD_DELAYED_CUT         EQU 25
-CMD_DELAYED_NOTE        EQU 26
+CMD_DELAYED_CUT         EQU 27
+CMD_DELAYED_NOTE        EQU 28
 
 
-; 27/32 commands used
+; 29/32 commands used
 
 
 ; \1 - command index
@@ -223,6 +225,13 @@ tbe_duration: MACRO
 _DURATION SET \1
 ENDM
 
+; tbe_jump <addr>
+tbe_jump: MACRO
+    DB $A0 | CMD_JUMP
+    DW \1
+ENDM
+
+
 ; tbe_call <addr>
 tbe_call: MACRO
     DB $A0 | CMD_CALL
@@ -234,16 +243,13 @@ tbe_ret: MACRO
     _makeCmd CMD_RET, 0
 ENDM
 
-; tbe_loop <count>, <addr>
-tbe_loop: MACRO
-    _makeCmd CMD_LOOP, \1
-    DW \2
+tbe_loopBegin: MACRO
+    _makeCmd CMD_LOOP_BEGIN, 0
 ENDM
 
-; pseudo-command
-; tbe_jump <addr>
-tbe_jump: MACRO
-    tbe_loop 0, \1
+; tbe_loop <count>
+tbe_loopEnd: MACRO
+    _makeCmd CMD_LOOP_END, \1
 ENDM
 
 ; tbe_halt
