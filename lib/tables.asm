@@ -67,6 +67,13 @@ tbe_dCommandTable:
     DW _tbe_cmdFnPanMiddle
     DW _tbe_cmdFnDelayedCut
     DW _tbe_cmdFnDelayedNote
+    ; unused commands, just halt
+    DW _tbe_cmdFnHalt
+    DW _tbe_cmdFnHalt
+    DW _tbe_cmdFnHalt
+
+STATIC_ASSERT FATAL, ((@ - tbe_dCommandTable) / 2) == 32, "invalid command table size"
+
 
 ; Note frequency table
 ; Octave range for CH1/CH2 is 2-8, CH3 is one lower (unless the waveform has 2 periods)
@@ -82,6 +89,8 @@ tbe_dNoteTable:
     DW $7C1, $7C5, $7C8, $7CB, $7CE, $7D1, $7D4, $7D6, $7D9, $7DB, $7DD, $7DF ; Octave 7
     DW $7E1, $7E2, $7E4, $7E6, $7E7, $7E9, $7EA, $7EB, $7EC, $7ED, $7EE, $7EF ; Octave 8
 
+STATIC_ASSERT FATAL, ((@ - tbe_dNoteTable) / 2) == (12 * 7), "invalid note table size (must be 7 octaves)"
+
 ;
 ; Noise (NR43) table
 ; This table maps notes from C-2 to B-6 for the NR43 register. Each value in this table
@@ -96,6 +105,8 @@ tbe_dNoiseTable:
     DB $77, $76, $75, $74, $67, $66, $65, $64, $57, $56, $55, $54 ; Octave 4
     DB $47, $46, $45, $44, $37, $36, $35, $34, $27, $26, $25, $24 ; Octave 5
     DB $17, $16, $15, $14, $07, $06, $05, $04, $03, $02, $01, $00 ; Octave 6
+
+STATIC_ASSERT FATAL, (@ - tbe_dNoiseTable) == (12 * 5), "invalid noise table size (must be 5 octaves)"
 
 ; note table: 84 * 2 = 168 bytes
 ; command table: 21 * 2 = 42 bytes
