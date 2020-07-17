@@ -13,150 +13,150 @@ song_stageclear::
 
 
 .ch1_main:
-    tbe_duration 16
-    tbe_note NOTE_HOLD          ; row 0x00
+    duration 16
+    note NOTE_HOLD          ; row 0x00
 
-    tbe_setEnvelope $E0
-    tbe_setInstrument 0
-    tbe_duration 1
-    tbe_note A_4                ; row 0x10
+    setEnvelope $E0
+    setInstrument 0
+    duration 1
+    note A_4                ; row 0x10
 
-    tbe_duration 3
-    tbe_note A_4                ; row 0x11
+    duration 3
+    note A_4                ; row 0x11
 
-    tbe_duration 1
-    tbe_note B_4                ; row 0x14
+    duration 1
+    note B_4                ; row 0x14
 
-    tbe_duration 3
-    tbe_note B_4                ; row 0x15
+    duration 3
+    note B_4                ; row 0x15
 
-    tbe_duration 1
-    tbe_note C#5                ; row 0x18
+    duration 1
+    note C#5                ; row 0x18
 
-    tbe_duration 3
-    tbe_note C#5                ; row 0x19
+    duration 3
+    note C#5                ; row 0x19
 
-    tbe_duration 1
-    tbe_note D#5                ; row 0x1C
-    tbe_note C#5                ; row 0x1D
-    tbe_note D#5                ; row 0x1E
-    tbe_duration 28
-    tbe_setEnvelope $E7
-    tbe_note E_5                ; row 0x1F
+    duration 1
+    note D#5                ; row 0x1C
+    note C#5                ; row 0x1D
+    note D#5                ; row 0x1E
+    duration 28
+    setEnvelope $E7
+    note E_5                ; row 0x1F
 
 .ch2_main:
-    tbe_duration 16
-    tbe_note NOTE_HOLD          ; row 0x00
+    duration 16
+    note NOTE_HOLD          ; row 0x00
 
-    tbe_setEnvelope $E0
-    tbe_setInstrument 0
-    tbe_duration 1
-    tbe_note C#5                ; row 0x10
+    setEnvelope $E0
+    setInstrument 0
+    duration 1
+    note C#5                ; row 0x10
 
-    tbe_duration 3
-    tbe_note C#5                ; row 0x11
+    duration 3
+    note C#5                ; row 0x11
 
-    tbe_duration 1
-    tbe_note D#5                ; row 0x14
+    duration 1
+    note D#5                ; row 0x14
 
-    tbe_duration 3
-    tbe_note D#5                ; row 0x15
+    duration 3
+    note D#5                ; row 0x15
 
-    tbe_duration 1
-    tbe_note E_5                ; row 0x18
+    duration 1
+    note E_5                ; row 0x18
 
-    tbe_duration 3
-    tbe_note E_5                ; row 0x19
+    duration 3
+    note E_5                ; row 0x19
 
-    tbe_duration 1
-    tbe_note F#5                ; row 0x1C
-    tbe_note E_5                ; row 0x1D
-    tbe_note F#5                ; row 0x1E
-    tbe_duration 27
-    tbe_setEnvelope $E7
-    tbe_note G#5                ; row 0x1F
+    duration 1
+    note F#5                ; row 0x1C
+    note E_5                ; row 0x1D
+    note F#5                ; row 0x1E
+    duration 27
+    setEnvelope $E7
+    note G#5                ; row 0x1F
     
-    tbe_duration 1
-    tbe_halt
-    tbe_note NOTE_HOLD          ; row 0x3A
+    duration 1
+    snd_halt
+    note NOTE_HOLD          ; row 0x3A
 
 .ch3_main:
-    tbe_duration 1
-    tbe_pitchSlideDown $10
-    tbe_setEnvelope $00
-    tbe_note G#5                ; row 0x00
+    duration 1
+    pitchSlideDown $10
+    setEnvelope $00
+    note G#5                ; row 0x00
 
-    tbe_setInstrument 0
-    tbe_note NOTE_HOLD          ; row 0x01
+    setInstrument 0
+    note NOTE_HOLD          ; row 0x01
 
-    tbe_note G#5                ; row 0x02
+    note G#5                ; row 0x02
 
-    tbe_setInstrument 0
-    tbe_note NOTE_HOLD          ; row 0x03
+    setInstrument 0
+    note NOTE_HOLD          ; row 0x03
 
-    tbe_note G#5                ; row 0x04
+    note G#5                ; row 0x04
     
-    tbe_pitchSlideDown $0F
-    tbe_duration 2
-    tbe_note F_5                ; row 0x05
+    pitchSlideDown $0F
+    duration 2
+    note F_5                ; row 0x05
 
-    tbe_duration 1
-    tbe_pitchSlideDown $0E
+    duration 1
+    pitchSlideDown $0E
 
-    tbe_note D_5                ; row 0x07
+    note D_5                ; row 0x07
 
-    tbe_setInstrument 0
-    tbe_note NOTE_HOLD          ; row 0x08
+    setInstrument 0
+    note NOTE_HOLD          ; row 0x08
 
 
-    tbe_note D_5                ; row 0x09
+    note D_5                ; row 0x09
 
-    tbe_setInstrument 0
-    tbe_note NOTE_HOLD          ; row 0x0A
+    setInstrument 0
+    note NOTE_HOLD          ; row 0x0A
 
-    tbe_note D_5                ; row 0x0B
+    note D_5                ; row 0x0B
 
-    tbe_pitchSlideDown $10
-    tbe_duration 2
-    tbe_note C_5                ; row 0x0C
+    pitchSlideDown $10
+    duration 2
+    note C_5                ; row 0x0C
 
-    tbe_pitchSlideDown $11
-    tbe_note A#4                ; row 0x0E
+    pitchSlideDown $11
+    note A#4                ; row 0x0E
 
-    tbe_pitchSlideDown $0
-    tbe_duration 1
-    tbe_note F#3                ; row 0x10
+    pitchSlideDown $0
+    duration 1
+    note F#3                ; row 0x10
 
-    tbe_duration 3
-    tbe_note F#3                ; row 0x11
+    duration 3
+    note F#3                ; row 0x11
 
-    tbe_duration 1
-    tbe_note G#3                ; row 0x14
+    duration 1
+    note G#3                ; row 0x14
 
-    tbe_duration 3
-    tbe_note G#3                ; row 0x15
+    duration 3
+    note G#3                ; row 0x15
 
-    tbe_duration 1
-    tbe_note A_3                ; row 0x18
+    duration 1
+    note A_3                ; row 0x18
 
-    tbe_duration 3
-    tbe_note A_3                ; row 0x19
+    duration 3
+    note A_3                ; row 0x19
 
-    tbe_duration 1
-    tbe_note B_3                ; row 0x1C
-    tbe_note A_3                ; row 0x1D
-    tbe_note B_3                ; row 0x1E
+    duration 1
+    note B_3                ; row 0x1C
+    note A_3                ; row 0x1D
+    note B_3                ; row 0x1E
 
-    tbe_duration 24
-    tbe_note B_3                ; row 0x1F
+    duration 24
+    note B_3                ; row 0x1F
 
-    tbe_duration 4
-    tbe_setInstrument 0
-    tbe_note NOTE_HOLD          ; row 0x37
+    duration 4
+    setInstrument 0
+    note NOTE_HOLD          ; row 0x37
 
 .ch4_main:
-    tbe_duration 64
-    tbe_note NOTE_HOLD          ; row 0x00
+    duration 64
+    note NOTE_HOLD          ; row 0x00
 
 .end:
 

@@ -20,315 +20,309 @@ song_rushingheart::
     DW .ch4_main
 
 .ch1_main:
-    tbe_timbre1
-    tbe_setEnvelope $A7
-    tbe_duration 7
-    tbe_note G_3
+    timbre1
+    setEnvelope $A7
+    duration 7
+    note G_3
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 3
-    tbe_note G_3
+    duration 1
+    note NOTE_CUT
+    duration 3
+    note G_3
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 3
-    tbe_note D_4
+    duration 1
+    note NOTE_CUT
+    duration 3
+    note D_4
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 3
-    tbe_note D_4
+    duration 1
+    note NOTE_CUT
+    duration 3
+    note D_4
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 3
-    tbe_note C#4
+    duration 1
+    note NOTE_CUT
+    duration 3
+    note C#4
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 3
-    tbe_note C#4
+    duration 1
+    note NOTE_CUT
+    duration 3
+    note C#4
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 3
-    tbe_note D_4
+    duration 1
+    note NOTE_CUT
+    duration 3
+    note D_4
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 3
-    tbe_note D_4
+    duration 1
+    note NOTE_CUT
+    duration 3
+    note D_4
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 3
-    tbe_note G_4
+    duration 1
+    note NOTE_CUT
+    duration 3
+    note G_4
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 3
-    tbe_note G_4
+    duration 1
+    note NOTE_CUT
+    duration 3
+    note G_4
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 4
-    tbe_note D_4
+    duration 1
+    note NOTE_CUT
+    duration 4
+    note D_4
 
-    tbe_duration 1
-    tbe_note A_4
+    duration 1
+    note A_4
 
-    tbe_duration 6
-    tbe_note A#4
+    duration 6
+    note A#4
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
-    tbe_duration 7
-    tbe_note A_4
+    duration 1
+    note NOTE_CUT
+    duration 7
+    note A_4
 
-    tbe_duration 1
-    tbe_note NOTE_CUT
+    duration 1
+    note NOTE_CUT
 
-    tbe_jump .ch1_main
+    snd_jump .ch1_main
 
     _pattern_check PATTERN_SIZE
 
     DW .ch2_tr0
 .ch2_main:
-    tbe_call .ch2_tr0
-    tbe_timbre1
-    tbe_setEnvelope $57
-    tbe_duration 12
-    tbe_note G_5
+    snd_call .ch2_tr0
+    timbre1
+    setEnvelope $57
+    duration 12
+    note G_5
 
-    tbe_timbre0
-    tbe_setEnvelope $77
-    tbe_duration 4
-    tbe_note F_3
+    timbre0
+    setEnvelope $77
+    duration 4
+    note F_3
 
-    tbe_duration 6
-    tbe_note G_3
+    duration 6
+    note G_3
 
-    tbe_duration 2
-    tbe_note NOTE_CUT
+    duration 2
+    note NOTE_CUT
 
-    tbe_duration 4
-    tbe_note A#3
+    duration 4
+    note A#3
 
-    tbe_duration 6
-    tbe_note C_4
+    duration 6
+    note C_4
 
-    tbe_duration 2
-    tbe_note NOTE_CUT
+    duration 2
+    note NOTE_CUT
 
-    tbe_duration 4
-    tbe_note F_3
+    duration 4
+    note F_3
     
-    tbe_duration 6
-    tbe_note G_3
+    duration 6
+    note G_3
 
-    tbe_duration 2
-    tbe_note NOTE_CUT
+    duration 2
+    note NOTE_CUT
 
-    tbe_duration 4
-    tbe_note C_3
+    duration 4
+    note C_3
 
-    tbe_note A#2
+    note A#2
 
-    tbe_note G_2
+    note G_2
 
-    tbe_note F_2
+    note F_2
 
     _pattern_check PATTERN_SIZE
-    tbe_call .ch2_tr0
-    tbe_timbre1
-    tbe_setEnvelope $57
-    tbe_duration 8
-    tbe_note G_5
+    snd_call .ch2_tr0
+    timbre1
+    setEnvelope $57
+    duration 8
+    note G_5
 
-    tbe_duration 4
-    tbe_note NOTE_CUT
+    duration 4
+    note NOTE_CUT
 
-    tbe_timbre0
-    tbe_setEnvelope $77
-    tbe_note F_3
+    timbre0
+    setEnvelope $77
+    note F_3
 
-    tbe_duration 6
-    tbe_note G_3
+    duration 6
+    note G_3
 
-    tbe_duration 2
-    tbe_note NOTE_CUT
+    duration 2
+    note NOTE_CUT
 
-    tbe_duration 2
-    tbe_note C_4
+    duration 2
+    note C_4
     
-    tbe_note D_4
+    note D_4
 
-    tbe_note C_4
+    note C_4
 
-    tbe_note A#3
+    note A#3
 
-    tbe_duration 4
-    tbe_note G_3
+    duration 4
+    note G_3
 
-    tbe_duration 2
-    tbe_note C_4
+    duration 2
+    note C_4
 
-    tbe_note D_4
+    note D_4
 
-    tbe_note C_4
+    note C_4
 
-    tbe_note A#3
+    note A#3
 
-    tbe_duration 4
-    tbe_note G_3
+    duration 4
+    note G_3
 
-    tbe_duration 2
-    tbe_note C_4
+    duration 2
+    note C_4
     
-    tbe_note D_4
+    note D_4
 
-    tbe_note C_4
+    note C_4
 
-    tbe_note A#3
+    note A#3
 
-    tbe_note G_3
+    note G_3
 
-    tbe_note F_3
+    note F_3
     
-    tbe_note C_3
+    note C_3
 
-    tbe_note A#2
+    note A#2
     _pattern_check PATTERN_SIZE
 
-    tbe_jump .ch2_main
+    snd_jump .ch2_main
 
 .ch3_main:
-    tbe_setEnvelope $00
-    tbe_duration 12
-    tbe_note G_3
+    setEnvelope $00
+    duration 12
+    note G_3
 
-    tbe_duration 52
-    tbe_note NOTE_CUT
+    duration 52
+    note NOTE_CUT
 
-    tbe_jump .ch3_main
+    snd_jump .ch3_main
 
     _pattern_check PATTERN_SIZE
 
 .ch4_main:
-    tbe_call .ch4_tr0
-    tbe_setEnvelope $B1
-    tbe_duration 4
-    tbe_note DRUM_3
+    snd_call .ch4_tr0
+    setEnvelope $B1
+    duration 4
+    
+    loopBegin
+        note DRUM_3
+    loopEnd 2
 
-    tbe_note DRUM_3
+    duration 8
 
-    tbe_note DRUM_3
+    loopBegin
+        note DRUM_C
+    loopEnd 4
 
-    tbe_duration 8
-    tbe_note DRUM_C
+    duration 4
+    note DRUM_C
 
-    tbe_note DRUM_C
+    note DRUM_3
 
-    tbe_note DRUM_C
+    note DRUM_7
 
-    tbe_note DRUM_C
+    ;_pattern_check PATTERN_SIZE
+    snd_call .ch4_tr0
+    setEnvelope $B1
+    duration 4
+    note DRUM_3
 
-    tbe_note DRUM_C
+    note DRUM_3
 
-    tbe_duration 4
-    tbe_note DRUM_C
+    note DRUM_3
 
-    tbe_note DRUM_3
+    duration 8
+    note DRUM_C
 
-    tbe_note DRUM_7
+    note DRUM_C
 
-    _pattern_check PATTERN_SIZE
-    tbe_call .ch4_tr0
-    tbe_setEnvelope $B1
-    tbe_duration 4
-    tbe_note DRUM_3
+    note DRUM_C
 
-    tbe_note DRUM_3
+    note DRUM_C
 
-    tbe_note DRUM_3
+    note DRUM_C
 
-    tbe_duration 8
-    tbe_note DRUM_C
+    duration 4
+    note DRUM_7
 
-    tbe_note DRUM_C
+    duration 2
+    note DRUM_7
 
-    tbe_note DRUM_C
+    note DRUM_7
 
-    tbe_note DRUM_C
+    note DRUM_7
 
-    tbe_note DRUM_C
-
-    tbe_duration 4
-    tbe_note DRUM_7
-
-    tbe_duration 2
-    tbe_note DRUM_7
-
-    tbe_note DRUM_7
-
-    tbe_note DRUM_7
-
-    tbe_note DRUM_7
+    note DRUM_7
 
 
     _pattern_check PATTERN_SIZE
-    tbe_jump .ch4_main
+    snd_jump .ch4_main
 
 ; CH2 =========================================================================
 
 .ch2_tr0:
-    tbe_timbre1
-    tbe_setEnvelope $57
-    tbe_duration 8
-    tbe_note G_5
+    timbre1
+    setEnvelope $57
+    duration 8
+    note G_5
 
-    tbe_duration 4
-    tbe_note NOTE_CUT
+    duration 4
+    note NOTE_CUT
 
-    tbe_timbre0
-    tbe_setEnvelope $77
-    tbe_note F_3
+    timbre0
+    setEnvelope $77
+    note F_3
 
-    tbe_duration 6
-    tbe_note G_3
+    duration 6
+    note G_3
 
-    tbe_duration 2
-    tbe_note NOTE_CUT
+    duration 2
+    note NOTE_CUT
 
-    tbe_duration 4
-    tbe_note A#3
+    duration 4
+    note A#3
 
-    tbe_duration 6
-    tbe_note C_4
+    duration 6
+    note C_4
 
-    tbe_duration 2
-    tbe_note NOTE_CUT
+    duration 2
+    note NOTE_CUT
 
-    tbe_duration 4
-    tbe_note F_3
+    duration 4
+    note F_3
     
-    tbe_duration 6
-    tbe_note G_3
+    duration 6
+    note G_3
 
-    tbe_duration 2
-    tbe_note NOTE_CUT
+    duration 2
+    note NOTE_CUT
 
-    tbe_duration 4
-    tbe_note A#2
+    duration 4
+    note A#2
 
-    tbe_note C_3
+    note C_3
 
-    tbe_note F_2
+    note F_2
 
-    tbe_note G_2
+    note G_2
 
-    tbe_ret
+    ret
 
     _pattern_check PATTERN_SIZE
 
@@ -341,33 +335,33 @@ song_rushingheart::
 
 
 .ch4_tr0:
-    tbe_setEnvelope $B1
-    tbe_duration 4
-    tbe_note DRUM_3
+    setEnvelope $B1
+    duration 4
+    note DRUM_3
 
-    tbe_note DRUM_3
+    note DRUM_3
 
-    tbe_note DRUM_3
+    note DRUM_3
 
-    tbe_duration 8
-    tbe_note DRUM_C
+    duration 8
+    note DRUM_C
 
-    tbe_note DRUM_C
+    note DRUM_C
 
-    tbe_note DRUM_C
+    note DRUM_C
 
-    tbe_note DRUM_C
+    note DRUM_C
 
-    tbe_note DRUM_C
+    note DRUM_C
 
-    tbe_duration 4
-    tbe_note DRUM_C
+    duration 4
+    note DRUM_C
 
-    tbe_note DRUM_7
+    note DRUM_7
 
-    tbe_note DRUM_C
+    note DRUM_C
 
-    tbe_ret
+    ret
 
     _pattern_check PATTERN_SIZE
 

@@ -200,6 +200,7 @@ ENDM
 
 _DURATION_COUNTER SET 0
 _DURATION SET 1
+_LOOP_COUNTER SET 0
 
 
 _pattern_check_reset: MACRO
@@ -213,133 +214,136 @@ STATIC_ASSERT WARN, _DURATION_COUNTER == \1, "track length incorrect, {d:_DURATI
 ENDM
 
 
-tbe_note: MACRO
+note: MACRO
     STATIC_ASSERT FATAL, \1 <= NOTE_LAST, "illegal note index"
     DB \1
 _DURATION_COUNTER SET _DURATION_COUNTER + _DURATION
+_LOOP_COUNTER SET _LOOP_COUNTER + _DURATION
 ENDM
 
-tbe_duration: MACRO
+duration: MACRO
     STATIC_ASSERT FATAL, (\1) >= 1 && (\1) <= 64, "duration must be between 1 and 64 rows"
     DB $C0 | (\1 - 1)
 _DURATION SET \1
 ENDM
 
-; tbe_jump <addr>
-tbe_jump: MACRO
+; snd_jump <addr>
+snd_jump: MACRO
     DB $A0 | CMD_JUMP
     DW \1
 ENDM
 
 
-; tbe_call <addr>
-tbe_call: MACRO
+; snd_call <addr>
+snd_call: MACRO
     DB $A0 | CMD_CALL
     DW \1
 ENDM
 
-; tbe_ret
-tbe_ret: MACRO
+; snd_ret
+snd_ret: MACRO
     _makeCmd CMD_RET, 0
 ENDM
 
-tbe_loopBegin: MACRO
+loopBegin: MACRO
+_LOOP_COUNTER = 0
     _makeCmd CMD_LOOP_BEGIN, 0
 ENDM
 
-; tbe_loop <count>
-tbe_loopEnd: MACRO
+; loop <count>
+loopEnd: MACRO
+_DURATION_COUNTER SET _DURATION_COUNTER + (_LOOP_COUNTER * \1)
     _makeCmd CMD_LOOP_END, \1
 ENDM
 
-; tbe_halt
-tbe_halt: MACRO
+; halt
+snd_halt: MACRO
     _makeCmd CMD_HALT, 0
 ENDM
 
-; tbe_tempo <speed>
-tbe_tempo: MACRO
+; tempo <speed>
+tempo: MACRO
     STATIC_ASSERT FATAL, \1 >= 8 && \1 < 248, "invalid speed"
     _makeCmd CMD_TEMPO, \1
 ENDM
 
-; tbe_sfx <sfxId>
-tbe_sfx: MACRO
+; sfx <sfxId>
+sfx: MACRO
     _makeCmd CMD_SFX, \1
 ENDM
 
-; tbe_lock
-tbe_lock: MACRO
+; lock
+lock: MACRO
     _makeCmd CMD_LOCK, 0
 ENDM
 
-; tbe_arp <param>
-tbe_arp: MACRO
+; arp <param>
+arp: MACRO
     _makeCmd CMD_ARP, \1
 ENDM
 
-; tbe_pitchSlideUp <param>
-tbe_pitchSlideUp: MACRO
+; pitchSlideUp <param>
+pitchSlideUp: MACRO
     _makeCmd CMD_PITCH_SLIDE_UP, \1
 ENDM
 
-tbe_pitchSlideDown: MACRO
+pitchSlideDown: MACRO
     _makeCmd CMD_PITCH_SLIDE_DOWN, \1
 ENDM
 
-tbe_portamento: MACRO
+portamento: MACRO
     _makeCmd CMD_PORTAMENTO, \1
 ENDM
 
-tbe_vibrato: MACRO
+vibrato: MACRO
     _makeCmd CMD_VIBRATO, \1
 ENDM
 
-tbe_vibratoDelay: MACRO
+vibratoDelay: MACRO
     _makeCmd CMD_VIBRATO_DELAY, \1
 ENDM
 
-tbe_setEnvelope: MACRO
+setEnvelope: MACRO
     _makeCmd CMD_SET_ENVELOPE, \1
 ENDM
 
-tbe_setInstrument: MACRO
+setInstrument: MACRO
     _makeCmd CMD_SET_INSTRUMENT, \1
 ENDM
 
-tbe_timbre0: MACRO
+timbre0: MACRO
     _makeCmd CMD_TIMBRE_0, 0
 ENDM
 
-tbe_timbre1: MACRO
+timbre1: MACRO
     _makeCmd CMD_TIMBRE_1, 0
 ENDM
 
-tbe_timbre2: MACRO
+timbre2: MACRO
     _makeCmd CMD_TIMBRE_2, 0
 ENDM
 
-tbe_timbre3: MACRO
+timbre3: MACRO
     _makeCmd CMD_TIMBRE_3, 0
 ENDM
 
-tbe_panLeft: MACRO
+panLeft: MACRO
     _makeCmd CMD_PAN_LEFT, 0
 ENDM
 
-tbe_panRight: MACRO
+panRight: MACRO
     _makeCmd CMD_PAN_RIGHT, 0
 ENDM
 
-tbe_panMiddle: MACRO
+panMiddle: MACRO
     _makeCmd CMD_PAN_MIDDLE, 0
 ENDM
 
-tbe_delayedNote: MACRO
+delayedNote: MACRO
     _makeCmd CMD_DELAYED_NOTE, \1
 ENDM
 
-tbe_delayedCut: MACRO
+delayedCut: MACRO
     _makeCmd CMD_DELAYED_CUT, \1
 ENDM
 
