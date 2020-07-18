@@ -184,9 +184,10 @@ CMD_DELAYED_NOTE        EQU 28
 ; 29/32 commands used
 
 
+; command sequence
 ; \1 - command index
 ; \2 - parameter
-_makeCmd: MACRO
+cmd: MACRO
     DB $80 | ((\2 != 0) << 5) | (\1)
     IF \2 != 0
         DB \2
@@ -197,27 +198,59 @@ ENDM
 ; Command Macros
 ; useful for hand-writing music data
 
+; macros with "__" are just for static error checking, they result in no
+; changes to the data emitted
 
-_DURATION_COUNTER SET 0
+; variable storing the elapsed rows
+_ROW_COUNTER SET 0
+_ROWS_EXPECTED SET 0
 _DURATION SET 1
 _LOOP_COUNTER SET 0
+_CURRENT_CHANNEL SET 1
 
-
-_pattern_check_reset: MACRO
-_DURATION_COUNTER SET 0
-_DURATION SET 1
+; specify the current channel
+__channel: MACRO
+_CURRENT_CHANNEL SET \1
 ENDM
 
-_pattern_check: MACRO
-STATIC_ASSERT WARN, _DURATION_COUNTER == \1, "track length incorrect, {d:_DURATION_COUNTER} != {d:\1}"
-    _pattern_check_reset
+__printSongSize: MACRO
+PRINTT "\1"
+SIZE EQU @ - \1
+PRINTT " size: {d:SIZE} byte"
+IF SIZE == 1
+PRINTT "\n"
+ELSE
+PRINTT "s\n"
+ENDC
+PURGE SIZE
+ENDM
+
+;
+; start of track data
+; \1 - number of rows to check against row counter
+;
+__track: MACRO
+_ROW_COUNTER SET 0
+_ROWS_EXPECTED SET \1
+ENDM
+
+;
+; end entering track data
+; checks if the number of entered rows matches the start of the row
+;
+__trackEnd: MACRO
+STATIC_ASSERT WARN, _ROW_COUNTER == _ROWS_EXPECTED, "track length incorrect, expected {d:_ROWS_EXPECTED} got {d:_ROW_COUNTER}"
 ENDM
 
 
 note: MACRO
+IF _CURRENT_CHANNEL == 4
+    STATIC_ASSERT FATAL, \1 <= B_6 || \1 == NOTE_CUT || \1 == NOTE_HOLD, "illegal note index"
+ELSE
     STATIC_ASSERT FATAL, \1 <= NOTE_LAST, "illegal note index"
+ENDC
     DB \1
-_DURATION_COUNTER SET _DURATION_COUNTER + _DURATION
+_ROW_COUNTER SET _ROW_COUNTER + _DURATION
 _LOOP_COUNTER SET _LOOP_COUNTER + _DURATION
 ENDM
 
@@ -242,109 +275,109 @@ ENDM
 
 ; snd_ret
 snd_ret: MACRO
-    _makeCmd CMD_RET, 0
+    cmd CMD_RET, 0
 ENDM
 
 loopBegin: MACRO
 _LOOP_COUNTER = 0
-    _makeCmd CMD_LOOP_BEGIN, 0
+    cmd CMD_LOOP_BEGIN, 0
 ENDM
 
 ; loop <count>
 loopEnd: MACRO
-_DURATION_COUNTER SET _DURATION_COUNTER + (_LOOP_COUNTER * \1)
-    _makeCmd CMD_LOOP_END, \1
+_ROW_COUNTER SET _ROW_COUNTER + (_LOOP_COUNTER * \1)
+    cmd CMD_LOOP_END, \1
 ENDM
 
 ; halt
 snd_halt: MACRO
-    _makeCmd CMD_HALT, 0
+    cmd CMD_HALT, 0
 ENDM
 
 ; tempo <speed>
 tempo: MACRO
     STATIC_ASSERT FATAL, \1 >= 8 && \1 < 248, "invalid speed"
-    _makeCmd CMD_TEMPO, \1
+    cmd CMD_TEMPO, \1
 ENDM
 
 ; sfx <sfxId>
 sfx: MACRO
-    _makeCmd CMD_SFX, \1
+    cmd CMD_SFX, \1
 ENDM
 
 ; lock
 lock: MACRO
-    _makeCmd CMD_LOCK, 0
+    cmd CMD_LOCK, 0
 ENDM
 
 ; arp <param>
 arp: MACRO
-    _makeCmd CMD_ARP, \1
+    cmd CMD_ARP, \1
 ENDM
 
 ; pitchSlideUp <param>
 pitchSlideUp: MACRO
-    _makeCmd CMD_PITCH_SLIDE_UP, \1
+    cmd CMD_PITCH_SLIDE_UP, \1
 ENDM
 
 pitchSlideDown: MACRO
-    _makeCmd CMD_PITCH_SLIDE_DOWN, \1
+    cmd CMD_PITCH_SLIDE_DOWN, \1
 ENDM
 
 portamento: MACRO
-    _makeCmd CMD_PORTAMENTO, \1
+    cmd CMD_PORTAMENTO, \1
 ENDM
 
 vibrato: MACRO
-    _makeCmd CMD_VIBRATO, \1
+    cmd CMD_VIBRATO, \1
 ENDM
 
 vibratoDelay: MACRO
-    _makeCmd CMD_VIBRATO_DELAY, \1
+    cmd CMD_VIBRATO_DELAY, \1
 ENDM
 
 setEnvelope: MACRO
-    _makeCmd CMD_SET_ENVELOPE, \1
+    cmd CMD_SET_ENVELOPE, \1
 ENDM
 
 setInstrument: MACRO
-    _makeCmd CMD_SET_INSTRUMENT, \1
+    cmd CMD_SET_INSTRUMENT, \1
 ENDM
 
 timbre0: MACRO
-    _makeCmd CMD_TIMBRE_0, 0
+    cmd CMD_TIMBRE_0, 0
 ENDM
 
 timbre1: MACRO
-    _makeCmd CMD_TIMBRE_1, 0
+    cmd CMD_TIMBRE_1, 0
 ENDM
 
 timbre2: MACRO
-    _makeCmd CMD_TIMBRE_2, 0
+    cmd CMD_TIMBRE_2, 0
 ENDM
 
 timbre3: MACRO
-    _makeCmd CMD_TIMBRE_3, 0
+    cmd CMD_TIMBRE_3, 0
 ENDM
 
 panLeft: MACRO
-    _makeCmd CMD_PAN_LEFT, 0
+    cmd CMD_PAN_LEFT, 0
 ENDM
 
 panRight: MACRO
-    _makeCmd CMD_PAN_RIGHT, 0
+    cmd CMD_PAN_RIGHT, 0
 ENDM
 
 panMiddle: MACRO
-    _makeCmd CMD_PAN_MIDDLE, 0
+    cmd CMD_PAN_MIDDLE, 0
 ENDM
 
 delayedNote: MACRO
-    _makeCmd CMD_DELAYED_NOTE, \1
+    cmd CMD_DELAYED_NOTE, \1
 ENDM
 
 delayedCut: MACRO
-    _makeCmd CMD_DELAYED_CUT, \1
+    cmd CMD_DELAYED_CUT, \1
 ENDM
 
 

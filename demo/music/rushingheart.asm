@@ -9,7 +9,7 @@ SECTION "song_rushingheart", ROM0
 PATTERN_SIZE EQU 64
 
 DRUM_3 EQU C_6
-DRUM_C EQU C_7
+DRUM_C EQU G_6
 DRUM_7 EQU F_6
 
 song_rushingheart::
@@ -19,7 +19,12 @@ song_rushingheart::
     DW .ch3_main
     DW .ch4_main
 
+; =============================================================================
+    __channel 1
+
 .ch1_main:
+    __track PATTERN_SIZE
+
     timbre1
     setEnvelope $A7
     duration 7
@@ -89,13 +94,18 @@ song_rushingheart::
     duration 1
     note NOTE_CUT
 
+    __trackEnd
+
     snd_jump .ch1_main
 
-    _pattern_check PATTERN_SIZE
+; =============================================================================
+    __channel 2
 
-    DW .ch2_tr0
 .ch2_main:
     snd_call .ch2_tr0
+
+    __track PATTERN_SIZE
+
     timbre1
     setEnvelope $57
     duration 12
@@ -139,8 +149,12 @@ song_rushingheart::
 
     note F_2
 
-    _pattern_check PATTERN_SIZE
+    __trackEnd
+
     snd_call .ch2_tr0
+
+    __track PATTERN_SIZE
+
     timbre1
     setEnvelope $57
     duration 8
@@ -199,11 +213,69 @@ song_rushingheart::
     note C_3
 
     note A#2
-    _pattern_check PATTERN_SIZE
+
+    __trackEnd
 
     snd_jump .ch2_main
 
+.ch2_tr0:
+    __track PATTERN_SIZE
+
+    timbre1
+    setEnvelope $57
+    duration 8
+    note G_5
+
+    duration 4
+    note NOTE_CUT
+
+    timbre0
+    setEnvelope $77
+    note F_3
+
+    duration 6
+    note G_3
+
+    duration 2
+    note NOTE_CUT
+
+    duration 4
+    note A#3
+
+    duration 6
+    note C_4
+
+    duration 2
+    note NOTE_CUT
+
+    duration 4
+    note F_3
+    
+    duration 6
+    note G_3
+
+    duration 2
+    note NOTE_CUT
+
+    duration 4
+    note A#2
+
+    note C_3
+
+    note F_2
+
+    note G_2
+
+    __trackEnd
+
+    snd_ret
+
+; =============================================================================
+    __channel 3
+
 .ch3_main:
+    __track PATTERN_SIZE
+
     setEnvelope $00
     duration 12
     note G_3
@@ -211,12 +283,18 @@ song_rushingheart::
     duration 52
     note NOTE_CUT
 
+    __trackEnd
+
     snd_jump .ch3_main
 
-    _pattern_check PATTERN_SIZE
+; =============================================================================
+    __channel 4
 
 .ch4_main:
     snd_call .ch4_tr0
+
+    __track PATTERN_SIZE
+
     setEnvelope $B1
     duration 4
     
@@ -237,8 +315,12 @@ song_rushingheart::
 
     note DRUM_7
 
-    ;_pattern_check PATTERN_SIZE
+    __trackEnd
+
     snd_call .ch4_tr0
+
+    __track PATTERN_SIZE
+
     setEnvelope $B1
     duration 4
     note DRUM_3
@@ -270,71 +352,13 @@ song_rushingheart::
 
     note DRUM_7
 
+    __trackEnd
 
-    _pattern_check PATTERN_SIZE
     snd_jump .ch4_main
 
-; CH2 =========================================================================
-
-.ch2_tr0:
-    timbre1
-    setEnvelope $57
-    duration 8
-    note G_5
-
-    duration 4
-    note NOTE_CUT
-
-    timbre0
-    setEnvelope $77
-    note F_3
-
-    duration 6
-    note G_3
-
-    duration 2
-    note NOTE_CUT
-
-    duration 4
-    note A#3
-
-    duration 6
-    note C_4
-
-    duration 2
-    note NOTE_CUT
-
-    duration 4
-    note F_3
-    
-    duration 6
-    note G_3
-
-    duration 2
-    note NOTE_CUT
-
-    duration 4
-    note A#2
-
-    note C_3
-
-    note F_2
-
-    note G_2
-
-    ret
-
-    _pattern_check PATTERN_SIZE
-
-
-
-
-
-; CH4 =========================================================================
-
-
-
 .ch4_tr0:
+    __track PATTERN_SIZE
+
     setEnvelope $B1
     duration 4
     note DRUM_3
@@ -361,14 +385,8 @@ song_rushingheart::
 
     note DRUM_C
 
-    ret
+    __trackEnd
 
-    _pattern_check PATTERN_SIZE
+    snd_ret
 
-
-
-.end:
-
-PRINTT "song_rushingheart size: "
-PRINTI song_rushingheart.end - song_rushingheart
-PRINTT " bytes\n"
+    __printSongSize song_rushingheart

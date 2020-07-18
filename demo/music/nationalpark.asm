@@ -14,6 +14,7 @@ song_natpark::
 
 
 ; CH1 =========================================================================
+    __channel 1
 
 .ch1_entry:
     timbre1 ; setTimbre $40
@@ -76,7 +77,7 @@ song_natpark::
 
     note NOTE_CUT
 
-    _pattern_check PATTERN_SIZE
+    
     snd_call .ch1_tr_4
 
     ; track 6
@@ -109,11 +110,11 @@ song_natpark::
 
     duration 8
     note NOTE_CUT
-    _pattern_check PATTERN_SIZE
+    
     snd_jump .ch1_main
 
 .ch1_tr_1_2_3:
-    _pattern_check_reset
+
     ; track 1
 
     duration 6
@@ -235,7 +236,7 @@ song_natpark::
 
     note D#5
 
-    _pattern_check PATTERN_SIZE
+    
 
     ; track 2
 
@@ -336,7 +337,7 @@ song_natpark::
 
     note A#5
 
-    _pattern_check PATTERN_SIZE
+    
 
     ; track 3
 
@@ -419,9 +420,9 @@ song_natpark::
 
     note A#4
 
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 .ch1_tr_4:
     duration 19
@@ -457,14 +458,15 @@ song_natpark::
     duration 4
     note NOTE_CUT
 
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 
 
 
 ; CH2 =========================================================================
+    __channel 2
 
 .ch2_entry:
     panLeft ; setPanning $10
@@ -485,7 +487,7 @@ song_natpark::
     snd_jump .ch2_main
 
 .ch2_tr_1:
-    _pattern_check_reset
+
 
     setEnvelope $A7
     tempo $48
@@ -526,9 +528,9 @@ song_natpark::
     duration 8
     note F#4
     
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 .ch2_tr_2:
     duration 6
@@ -566,9 +568,9 @@ song_natpark::
     
     duration 8
     note D_4
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 .ch2_tr_3:
     duration 6
@@ -611,9 +613,9 @@ song_natpark::
     note F#5
 
     note F_5
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 .ch2_tr_4:
     duration 1
@@ -692,9 +694,9 @@ song_natpark::
     note D_5
 
     note C#5
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 .ch2_tr_5:
     duration 1
@@ -761,9 +763,9 @@ song_natpark::
 
     note NOTE_CUT
     
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 .ch2_tr_6:
     duration 1
@@ -795,11 +797,12 @@ song_natpark::
 
     note D_3
 
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 ; CH3 =========================================================================
+    __channel 3
 
 .ch3_entry:
     setEnvelope $03
@@ -817,7 +820,7 @@ song_natpark::
     snd_jump .ch3_main
 
 .ch3_tr_1_2:
-    _pattern_check_reset
+
 
     ; Track 1
 
@@ -845,7 +848,7 @@ song_natpark::
 
     note D#7
 
-    _pattern_check PATTERN_SIZE
+    
 
     ; Track 2
 
@@ -895,9 +898,9 @@ song_natpark::
 
     note D#7
 
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 .ch3_tr_3:
     duration 2
@@ -943,9 +946,9 @@ song_natpark::
     
     note A#5
 
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 .ch3_tr_4:
     duration 2
@@ -988,9 +991,9 @@ song_natpark::
 
     note D_5
 
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 .ch3_tr_5:
     setEnvelope $04
@@ -1037,9 +1040,9 @@ song_natpark::
     duration 6
     note C#4
 
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 .ch3_tr_6:
     duration 6
@@ -1085,9 +1088,7 @@ song_natpark::
     duration 6
     note F_4
 
-    _pattern_check PATTERN_SIZE
-
-    ret
+    snd_ret
 
 .ch3_tr_7:
     duration 6
@@ -1138,11 +1139,12 @@ song_natpark::
 
     note A#5
 
-    _pattern_check PATTERN_SIZE
+    
 
-    ret
+    snd_ret
 
 ; CH4 =========================================================================
+    __channel 4
 
 .ch4_entry:
     duration 2
@@ -1153,8 +1155,5 @@ song_natpark::
         note NOTE_HOLD
     loopEnd 0
 
-.end:
 
-PRINTT "song_natpark size: "
-PRINTI song_natpark.end - song_natpark
-PRINTT " bytes\n"
+    __printSongSize song_natpark
