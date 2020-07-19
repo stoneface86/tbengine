@@ -312,27 +312,33 @@ ENDM
 
 ; arp <param>
 arp: MACRO
+    STATIC_ASSERT FATAL, _CURRENT_CHANNEL != 4, "cannot use arp on CH4"
     cmd CMD_ARP, \1
 ENDM
 
 ; pitchSlideUp <param>
 pitchSlideUp: MACRO
+    STATIC_ASSERT FATAL, _CURRENT_CHANNEL != 4, "cannot use pitchSlideUp on CH4"
     cmd CMD_PITCH_SLIDE_UP, \1
 ENDM
 
 pitchSlideDown: MACRO
+    STATIC_ASSERT FATAL, _CURRENT_CHANNEL != 4, "cannot use pitchSlideDown on CH4"
     cmd CMD_PITCH_SLIDE_DOWN, \1
 ENDM
 
 portamento: MACRO
+    STATIC_ASSERT FATAL, _CURRENT_CHANNEL != 4, "cannot use portamento on CH4"
     cmd CMD_PORTAMENTO, \1
 ENDM
 
 vibrato: MACRO
+    STATIC_ASSERT FATAL, _CURRENT_CHANNEL != 4, "cannot use vibrato on CH4"
     cmd CMD_VIBRATO, \1
 ENDM
 
 vibratoDelay: MACRO
+    STATIC_ASSERT FATAL, _CURRENT_CHANNEL != 4, "cannot use vibratoDelay on CH4"
     cmd CMD_VIBRATO_DELAY, \1
 ENDM
 
