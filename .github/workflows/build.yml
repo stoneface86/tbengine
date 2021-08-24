@@ -10,27 +10,27 @@ jobs:
       RGBDS_SOURCE_DIR: ${{ github.workspace }}/rgbds
 
   steps:
-    - uses: actions/checkout@v2
+  - uses: actions/checkout@v2
 
-    - name: Cache RGBDS
-      id: cache-rgbds
-      uses: actions/cache@v2
-      with:
-        path: ${{ env.RGBDS_BUILD_DIR }}
-        key: ${{ runner.os }}-rgbds
+  - name: Cache RGBDS
+    id: cache-rgbds
+    uses: actions/cache@v2
+    with:
+      path: ${{ env.RGBDS_BUILD_DIR }}
+      key: ${{ runner.os }}-rgbds
     
-    - name: Build RGBDS
-      if: steps.cache-rgbds.outputs.cache-hit != 'true'
-      run: |
-        sudo apt-get update
-        sudo apt-get install bison libpng-dev
-        git clone https://github.com/gbdev/rgbds ${{ env.RGBDS_SOURCE_DIR }}
-        mkdir ${{ env.RGBDS_BUILD_DIR }}
-        cmake -S ${{ env.RGBDS_SOURCE_DIR }} -B ${{ env.RGBDS_BUILD_DIR }} -DCMAKE_BUILD_TYPE=Release
-        cmake --build ${{ env.RGBDS_BUILD_DIR }}
+  - name: Build RGBDS
+    if: steps.cache-rgbds.outputs.cache-hit != 'true'
+    run: |
+      sudo apt-get update
+      sudo apt-get install bison libpng-dev
+      git clone https://github.com/gbdev/rgbds ${{ env.RGBDS_SOURCE_DIR }}
+      mkdir ${{ env.RGBDS_BUILD_DIR }}
+      cmake -S ${{ env.RGBDS_SOURCE_DIR }} -B ${{ env.RGBDS_BUILD_DIR }} -DCMAKE_BUILD_TYPE=Release
+      cmake --build ${{ env.RGBDS_BUILD_DIR }}
 
-    - name: Build
-      run: |
-        make RGBDS="${{ env.RGBDS_BUILD_DIR }}/src/" lib
+  - name: Build
+    run: |
+      make RGBDS="${{ env.RGBDS_BUILD_DIR }}/src/" lib
 
 
