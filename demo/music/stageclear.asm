@@ -160,6 +160,4 @@ song_stageclear::
 
 .end:
 
-PRINTT "song_stageclear size: "
-PRINTI song_stageclear.end - song_stageclear
-PRINTT " bytes \n"
+    __printSongSize song_stageclear

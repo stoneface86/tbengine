@@ -7,7 +7,7 @@ For the tracker program see [trackerboy][trackerboy-link]. WIP!
 
 * `inc/` - include directory
 * `demo/` - code for building the demo ROM
-* `lib/` - code for the driver, split up into separate assembly files
+* (deprecated) ~~`lib/` - code for the driver, split up into separate assembly files~~
 * `build/` - default build directory, assembled files/ROMs will be built here
 
 # Building
@@ -20,19 +20,17 @@ To build the demo:
 ```sh
 make
 ```
-This will build the library and demo ROM in the configured build directory (default is `build/`)
+This will build the driver and demo ROM in the configured build directory (default is `build/`)
 
-To build the driver as a single assembly file:
+To build just the driver:
 ```sh
 make lib
 ```
-This will concatenate all assembly files for the driver into one file ($(BUILD_DIR)/tbengine.asm) for use in other
-projects. This file will eventually be available to download in the releases section once it is somewhat usable.
-The only dependency for this library is hardware.inc, so make sure it is in your include path when assembling.
-
-You can load the library to either ROM0 or ROMX. Default is ROMX. To load to ROM0, define TBE_ROM0 when assembling.
 
 # Usage
+
+Assemble and link [tbengine.asm](./tbengine.asm) with your project. The driver will require some
+space in ROM0 and WRAM0.
 
 Always initialize the library first with `tbe_init`
 ```asm

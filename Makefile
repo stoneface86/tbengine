@@ -33,10 +33,8 @@ ROM_SYM := $(BUILD_DIR)/$(ROM_NAME).sym
 #
 # Variables for the RGB toolchain (just the command name if you have PATH set)
 #
-RGBASM := rgbasm
-RGBLINK := rgblink
-RGBFIX := rgbfix
-RGBGFX := rgbgfx
+RGBDS ?=
+
 
 #
 # BGB emulator
@@ -49,29 +47,20 @@ PAD_VALUE := 0xD3
 ASM_FLAGS := -i $(INC_DIR) -E -p $(PAD_VALUE)
 LINK_FLAGS := -m $(ROM_MAP) -n $(ROM_SYM) -p $(PAD_VALUE)
 FIX_FLAGS := -f lhg -i "$(ROM_ID)" -t "$(ROM_TITLE)" -p $(PAD_VALUE)
-DEFINES := -D TBE_ROM0
+DEFINES := -D TBE_PRINT_USAGE
 
 # (optional) user-specific overrides
 # this can be used to specify the location of the RGBDS toolchain manually
 # or a different build directory can be used by overriding BUILD_DIR
 -include user.mk
 
-LIB_SRC := lib/info.asm \
-           lib/macros.asm \
-           lib/engine.asm \
-           lib/commands.asm \
-           lib/frequency.asm \
-           lib/registers.asm \
-           lib/tables.asm \
-           lib/utils.asm \
-           lib/wram.asm
+RGBASM := $(RGBDS)rgbasm
+RGBLINK := $(RGBDS)rgblink
+RGBFIX := $(RGBDS)rgbfix
+RGBGFX := $(RGBDS)rgbgfx
 
-#
-# The library is combined into a single asm file for releases
-#
-LIB_FILE := $(BUILD_DIR)/tbengine.asm
+TBENGINE_OBJ := tbengine.obj
 
-LIB_OBJ_FILES := lib/all.obj
 #
 # List of object files to build, when adding a new assembly file, add its
 # object file here (preferably in alphabetical order).
@@ -85,7 +74,7 @@ OBJ_FILES := demo/main.obj \
              demo/music/rushingheart.obj \
              demo/music/calltest.obj \
              demo/music/waveforms.obj \
-             $(LIB_OBJ_FILES)
+             $(TBENGINE_OBJ)
 OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))
 
 # dependency files to be created by the assembler
@@ -106,7 +95,7 @@ OBJ_DIRS := $(patsubst %/,%,$(sort $(dir $(OBJ_FILES))))
 #
 all: $(ROM_GB)
 
-lib: $(LIB_FILE)
+lib: $(BUILD_DIR)/$(TBENGINE_OBJ)
 
 define ASSEMBLE_RULE
 	@echo "ASM      $@"

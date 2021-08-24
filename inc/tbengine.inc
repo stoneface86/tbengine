@@ -214,14 +214,8 @@ _CURRENT_CHANNEL SET \1
 ENDM
 
 __printSongSize: MACRO
-PRINTT "\1"
 SIZE EQU @ - \1
-PRINTT " size: {d:SIZE} byte"
-IF SIZE == 1
-PRINTT "\n"
-ELSE
-PRINTT "s\n"
-ENDC
+PRINTLN STRFMT("%s size: %d bytes", "\1", SIZE)
 PURGE SIZE
 ENDM
 
