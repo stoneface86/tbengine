@@ -1,74 +1,58 @@
+
 # tbengine
 
-Trackerboy engine, a Music/SFX engine for the gameboy. This repository contains the source code for the driver.
-For the tracker program see [trackerboy][trackerboy-link]. WIP!
+Trackerboy engine, a Music/SFX engine for the gameboy. This repository contains
+the source code for the driver. For the tracker program see [trackerboy]. WIP!
 
-# Project structure
+## Project structure
 
 * `inc/` - include directory
-* `demo/` - code for building the demo ROM
-* (deprecated) ~~`lib/` - code for the driver, split up into separate assembly files~~
+* `scraps/` - scrapped code for the driver, kept for archival purposes
+* `tests/` - tester ROM and unit test source
 * `build/` - default build directory, assembled files/ROMs will be built here
+* `tbengine.asm` - driver source code
 
-# Building
+## Building
 
-You will need the RGBDS toolchain and GNU Make in order to build. If RGBDS is not in your path you must
-configure the makefile by adding a `user.mk` file with path overrides for each RGBDS program. The `user.mk`
-file is for user-specific configuration and is not tracked by git.
+The provided Makefile builds the tester ROM and demo ROM. You will need the
+RGBDS toolchain and GNU Make in order to build. If RGBDS is not in your path
+you need to provide an RGBDS variable containing the path to the rgbds
+executables including a trailing slash.
 
-To build the demo:
+To build the demo and tester ROMs:
 ```sh
 make
 ```
-This will build the driver and demo ROM in the configured build directory (default is `build/`)
+This will build the ROMs in the configured build directory (default is
+`build/`).
 
-To build just the driver:
+To build just the demo:
 ```sh
-make lib
+make demo
 ```
 
-# Usage
-
-Assemble and link [tbengine.asm](./tbengine.asm) with your project. The driver will require some
-space in ROM0 and WRAM0.
-
-Always initialize the library first with `tbe_init`
-```asm
-    call    tbe_init
+Or the tester:
+```sh
+make test
 ```
 
-Then you can begin playing a song by calling `tbe_playSong`
-```asm
-    ld      hl, samplesong
-    call    tbe_playSong
-```
+## Usage
 
-Finally, call `tbe_update` once every vblank to update the sound registers
-```asm
-gameloop:
-    call    wait_vblank
+TBD. This driver is still under development and an API has not been formally
+defined yet. Check back later.
 
-    ; your game logic
-
-    call    tbe_update
-    jr      gameloop
-```
-
-If desired, the timer can be used instead of vblank for updating music. Keep in
-mind that tempo/speed will depend on the framerate you set. For vblank this is
-always ~59.7 fps.
-
-# Contributing
+## Contributing
 
 Any contributions are welcomed at this point in time. Submit a pull request or
 feel free to contact me on discord, my tag is stoneface#7646.
 
-# Versioning
+## Versioning
 
 This project uses Semantic Versioning v2.0.0
 
-# License
+## License
 
-This project is licensed under the MIT License - See [LICENSE](LICENSE) for more details
+This project is licensed under the MIT License - See [LICENSE](LICENSE) for
+more details.
 
-[trackerboy-link]: https://github.com/stoneface86/trackerboy
+[trackerboy]: https://github.com/stoneface86/trackerboy

@@ -1,3 +1,6 @@
+#
+# This workflow just builds everything using the makefile. Nothing is tested.
+#
 
 name: build
 on: [push]
@@ -8,6 +11,7 @@ jobs:
     env:
       RGBDS_BUILD_DIR: ${{ github.workspace }}/rgbds-build
       RGBDS_SOURCE_DIR: ${{ github.workspace }}/rgbds
+      RGBDS_VERSION: v0.5.2
 
     steps:
     - uses: actions/checkout@v2
@@ -17,7 +21,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ${{ env.RGBDS_BUILD_DIR }}
-        key: ${{ runner.os }}-rgbds
+        key: rgbds-${{ runner.os }}-${{ env.RGBDS_VERSION }}
 
     - name: Build RGBDS
       if: steps.cache-rgbds.outputs.cache-hit != 'true'
@@ -25,12 +29,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install bison libpng-dev
         git clone https://github.com/gbdev/rgbds ${{ env.RGBDS_SOURCE_DIR }}
+        git -C ${{ env.RGBDS_SOURCE_DIR }} checkout tags/${{ env.RGBDS_VERSION }}
         mkdir ${{ env.RGBDS_BUILD_DIR }}
         cmake -S ${{ env.RGBDS_SOURCE_DIR }} -B ${{ env.RGBDS_BUILD_DIR }} -DCMAKE_BUILD_TYPE=Release
         cmake --build ${{ env.RGBDS_BUILD_DIR }}
 
     - name: Build
       run: |
-        make RGBDS="${{ env.RGBDS_BUILD_DIR }}/src/" lib
-
-
+        make RGBDS="${{ env.RGBDS_BUILD_DIR }}/src/" all

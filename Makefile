@@ -12,41 +12,13 @@ INC_DIR := inc/
 SRC_DIR := ./
 
 #
-# ROM file name
-#
-ROM_NAME := demo
-
-#
-# game ID string (must be 4 characters)
-#
-ROM_ID := DEMO
-
-#
-# game title (truncated to 16 characters)
-#
-ROM_TITLE := DEMO
-
-ROM_GB := $(BUILD_DIR)/$(ROM_NAME).gb
-ROM_MAP := $(BUILD_DIR)/$(ROM_NAME).map
-ROM_SYM := $(BUILD_DIR)/$(ROM_NAME).sym
-
-#
-# Variables for the RGB toolchain (just the command name if you have PATH set)
-#
-RGBDS ?=
-
-
-#
 # BGB emulator
 #
 BGB := bgb
 
-# pad with $D3, illegal opcode
-PAD_VALUE := 0xD3
+PAD_VALUE := 0xFF
 
-ASM_FLAGS := -i $(INC_DIR) -E -p $(PAD_VALUE)
-LINK_FLAGS := -m $(ROM_MAP) -n $(ROM_SYM) -p $(PAD_VALUE)
-FIX_FLAGS := -f lhg -i "$(ROM_ID)" -t "$(ROM_TITLE)" -p $(PAD_VALUE)
+ASM_FLAGS := -i $(INC_DIR) -p $(PAD_VALUE)
 DEFINES := -D TBE_PRINT_USAGE
 
 # (optional) user-specific overrides
@@ -59,7 +31,24 @@ RGBLINK := $(RGBDS)rgblink
 RGBFIX := $(RGBDS)rgbfix
 RGBGFX := $(RGBDS)rgbgfx
 
-TBENGINE_OBJ := tbengine.obj
+TESTER_OBJ := tests/tester.obj \
+              tests/tbengine.obj \
+              tests/test_seqenum.obj
+TESTER_OBJ := $(addprefix $(BUILD_DIR)/,$(TESTER_OBJ))
+# dependency files
+TESTER_DEPS := $(TESTER_OBJ:.obj=.d)
+
+# get a list of all directories that will need to be created when building
+# patsubst removes the trailing slash
+# (for some reason if this was left in, make would always remake the directories)
+# sort is used to remove duplicates
+OBJ_FILES := $(TESTER_OBJ)
+OBJ_DIRS := $(patsubst %/,%,$(sort $(dir $(OBJ_FILES))))
+
+TESTER_GB := $(BUILD_DIR)/tester.gb
+TESTER_MAP := $(BUILD_DIR)/tester.map
+TESTER_SYM := $(BUILD_DIR)/tester.sym
+
 
 #
 # List of object files to build, when adding a new assembly file, add its
@@ -67,24 +56,24 @@ TBENGINE_OBJ := tbengine.obj
 # Note: globbing could be used, but I do not recommend it for various reasons
 #       (speed, excluding files is a pain, etc)
 #
-OBJ_FILES := demo/main.obj \
-             demo/joypad.obj \
-             demo/music/stageclear.obj \
-             demo/music/nationalpark.obj \
-             demo/music/rushingheart.obj \
-             demo/music/calltest.obj \
-             demo/music/waveforms.obj \
-             $(TBENGINE_OBJ)
-OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))
+# OBJ_FILES := demo/main.obj \
+#              demo/joypad.obj \
+#              demo/music/stageclear.obj \
+#              demo/music/nationalpark.obj \
+#              demo/music/rushingheart.obj \
+#              demo/music/calltest.obj \
+#              demo/music/waveforms.obj \
+#              $(TBENGINE_OBJ)
+# OBJ_FILES := $(addprefix $(BUILD_DIR)/,$(OBJ_FILES))
 
-# dependency files to be created by the assembler
-OBJ_DEPS := $(OBJ_FILES:.obj=.d)
+# # dependency files to be created by the assembler
+# OBJ_DEPS := $(OBJ_FILES:.obj=.d)
 
-# get a list of all directories that will need to be created when building
-# patsubst removes the trailing slash
-# (for some reason if this was left in, make would always remake the directories)
-# sort is used to remove duplicates
-OBJ_DIRS := $(patsubst %/,%,$(sort $(dir $(OBJ_FILES))))
+# # get a list of all directories that will need to be created when building
+# # patsubst removes the trailing slash
+# # (for some reason if this was left in, make would always remake the directories)
+# # sort is used to remove duplicates
+# OBJ_DIRS := $(patsubst %/,%,$(sort $(dir $(OBJ_FILES))))
 
 
 # -----------------------------------------------------------------------------
@@ -93,14 +82,19 @@ OBJ_DIRS := $(patsubst %/,%,$(sort $(dir $(OBJ_FILES))))
 #
 # default target is the ROM file
 #
-all: $(ROM_GB)
+all: $(TESTER_GB)
 
-lib: $(BUILD_DIR)/$(TBENGINE_OBJ)
+#lib: $(BUILD_DIR)/$(TBENGINE_OBJ)
+
+test: $(TESTER_GB)
 
 define ASSEMBLE_RULE
 	@echo "ASM      $@"
 	@$(RGBASM) $(ASM_FLAGS) $(DEFINES) -M $(BUILD_DIR)/$*.d -o $@ $<
 endef
+
+# export all symbols so we can test everything
+$(BUILD_DIR)/tests/tbengine.obj: ASM_FLAGS += -E
 
 #
 # Pattern rule for assembly source to an object file
@@ -115,23 +109,26 @@ $(BUILD_DIR)/%.obj: $(SRC_DIR)/%.z80 $(MAKEFILE_LIST)
 	$(ASSEMBLE_RULE)
 
 #
-# library target
-#
-$(LIB_FILE): $(LIB_SRC) $(MAKEFILE_LIST)
-	cat $(LIB_SRC) > $@
-
-#
 # Pattern rule for png images to planar tile format
 #
 $(BUILD_DIR)/%.png.2bpp: $(SRC_DIR)/%.png $(MAKEFILE_LIST)
 	@echo "GFX      $@"
 	@$(RGBGFX) -o $@ $<
 
-$(ROM_GB): $(OBJ_FILES) $(MAKEFILE_LIST)
+# $(ROM_GB): $(OBJ_FILES) $(MAKEFILE_LIST)
+# 	@echo "LINK     $@"
+# 	@$(RGBLINK) $(LINK_FLAGS) -o $@ $(OBJ_FILES)
+# 	@echo "FIX      $@"
+# 	@$(RGBFIX) $(FIX_FLAGS) $@
+
+#
+# Tester ROM
+#
+$(TESTER_GB): $(TESTER_OBJ) $(MAKEFILE_LIST)
 	@echo "LINK     $@"
-	@$(RGBLINK) $(LINK_FLAGS) -o $@ $(OBJ_FILES)
+	@$(RGBLINK) -m $(TESTER_MAP) -n $(TESTER_SYM) -o $@ $(TESTER_OBJ)
 	@echo "FIX      $@"
-	@$(RGBFIX) $(FIX_FLAGS) $@
+	@$(RGBFIX) -f lhg -i "TEST" -t "Tester" -p $(PAD_VALUE) $@
 
 $(OBJ_FILES): | $(OBJ_DIRS)
 
@@ -143,20 +140,20 @@ $(OBJ_DIRS):
 # Remove all built files
 #
 clean:
-	rm -f $(ROM_GB) $(ROM_SYM) $(ROM_MAP) $(OBJ_FILES) $(OBJ_DEPS)
+	rm -rf $(BUILD_DIR)/*
 
 run: $(ROM_GB)
 	@echo "RUN      $(ROM_GB)"
 	@$(BGB) $(ROM_GB)
 
-.PHONY: all clean lib run
+.PHONY: all clean run test
 
 #
 # Keep these files for debugging
 #
-.PRECIOUS: $(ROM_MAP) $(ROM_SYM)
+.PRECIOUS: $(TESTER_MAP) $(TESTER_SYM)
 
 #
 # assembler-generated dependency files
 #
--include $(OBJ_DEPS)
+-include $(TESTER_DEPS)
