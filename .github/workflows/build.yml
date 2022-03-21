@@ -41,7 +41,7 @@ jobs:
       id: cache-bgb
       uses: actions/cache@v2
       with:
-        path: ${{ BGB_DIR }}
+        path: ${{ env.BGB_DIR }}
         key: bgb-${{ env.BGB_VERSION }}
     
     - name: Get BGB
