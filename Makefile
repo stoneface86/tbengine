@@ -94,7 +94,7 @@ all: $(TESTER_GB)
 
 test: $(TESTER_GB)
 	@echo "TEST     $(TESTER_GB)"
-	@$(BGB) -rom $(TESTER_GB) -hf
+	@$(BGB) -hf -setting DebugSrcBrk=1 -rom $(TESTER_GB)
 	@$(PY) $(SRC_DIR)/tests/savchecker.py $(TESTER_GB:.gb=.sav)
 
 define ASSEMBLE_RULE
