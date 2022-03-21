@@ -1,35 +1,28 @@
-;
-; Unit test ROM
-;
-; Runs unit tests, plays a sound at the end if any of the tests fail.
-; A debugger breakpoint is inserted for each test case on failure. The number
-; of tests that failed can be accessed from the wFailCount WRAM variable.
-;
 
+; This rom is intended to be run headlessly
+; The results of each test is stored in SRAM
+; run this in an emulator that supports headless operation, ie bgb:
+;   bgb -rom tester.gb -hf
 
 INCLUDE "hardware.inc"
 
-; RST vectors
+SECTION "test-results", SRAM, BANK[0]
+sTesterResults:
+sTesterCount:
+    DS 1
+sTesterData:
 
-section "rst $10", rom0 [$10]
-section "rst $18", rom0 [$18]
-section "rst $20", rom0 [$20]
-section "rst $28", rom0 [$28]
-section "rst $30", rom0 [$30]
-section "rst $38", rom0 [$38]
+TEST_COUNT = 0
 
-; Interrupts
+MACRO sramOn
+    ld      a, $A
+    ld      [0], a
+ENDM
 
-SECTION	"Vblank", rom0[$0040]
-    jp VBlank_isr
-SECTION	"LCDC", rom0[$0048]
-    reti
-SECTION	"Timer_Overflow", rom0[$0050]
-    reti
-SECTION	"Serial", rom0[$0058]
-    reti
-SECTION	"p1thru4", rom0[$0060]
-    reti
+MACRO sramOff
+    xor     a, a
+    ld      [0], a
+ENDM
 
 ;
 ; Macro for specifying a test case. The argument \1 is the test case name. You
@@ -37,83 +30,94 @@ SECTION	"p1thru4", rom0[$0060]
 ; A register on error.
 ;
 MACRO testcase
-    call     clearregs          ; clear registers before starting the test
-    call     test_\1            ; call the unit test routine
-    or       a, a               ; check if test failed
-    jr       z, .nofail\@
-    ld       a, [wFailCount]    ; increment fail count
-    inc      a
-    ld       [wFailCount], a
-    ld       b, b               ; debugger breakpoint
-.nofail\@:
+
+PUSHS
+
+SECTION FRAGMENT "test-names", ROM0
+str_\1:
+    DB "\1", 0
+
+POPS
+
+TEST_COUNT = TEST_COUNT + 1
+
+    call    clearregs          ; clear registers before starting the test
+    call    test_\1            ; call the unit test routine
+    ld      de, str_\1
+    call    storeResult
 ENDM
 
-SECTION "Header", ROM0[$100]
+SECTION "header", ROM0[$100]
     di
     jp start
 
     DS $150 - @, 0
 
-SECTION "tester code", ROM0
+SECTION "code", ROM0
 
 start:
-; .waitVBlank:
-;     ld      a, [rLY]
-;     cp      144
-;     jr      c, .waitVBlank
-
-;     xor     a, a
-;     ld      [rLCDC], a
-    ld      a, %10000001
-    ld      [rLCDC], a
-
-    ; sound off
+    xor     a, a
     ld      [rNR52], a
-
-    ; turn on vblank interrupts
-    xor a
-    ld [rIF], a
-    ld  a, %00001
-    ld [rIE], a
-
-    ; enable interrupts
-    ei
-
-testerMain:
+.waitVBlank:
+    ld      a, [rLY]
+    cp      144
+    jr      c, .waitVBlank
 
     xor     a, a
-    ld      [wFailCount], a
+    ld      [rLCDC], a
+    ld      [rNR52], a
+
+main:
+
+    ; select SRAM bank 0
+    ld      a, 1
+    ld      [$6000], a
+    xor     a, a
+    ld      [$4000], a
+
+    ; clear SRAM (probably not necessary)
+    sramOn
+    ld      hl, $A000
+    ld      bc, $2000
+.clearSRAM:
+    xor     a, a
+    ld      [hl+], a
+    dec     bc
+    ld      a, b
+    or      a, c
+    jr      nz, .clearSRAM
+    sramOff
+
+    ; initialize results pointer
+    ld      a, LOW(sTesterData)
+    ld      [wResultsPointer], a
+    ld      a, HIGH(sTesterData)
+    ld      [wResultsPointer+1], a
+
 
     ; ======================== TEST CASES =====================================
 
     testcase seqenum
     testcase seqenum_loop
+    testcase update_nr51
 
     ; ======================== TEST CASES =====================================
 
-    ; sound on
-    ld      a, $80
-    ld      [rNR52], a
-    ld      a, $33
-    ld      [rNR51], a
-    ld      a, $77
-    ld      [rNR50], a
+    sramOn
 
-    ld      a, [wFailCount]
-    jr      nz, .failed
-    call    all_good
-    jr      .loop
-.failed:
-    call    no_good
+    ld      a, TEST_COUNT
+    ld      [sTesterCount], a
 
-    ; sound off
-    xor     a, a
-    ld      [rNR52], a
+    sramOff
 
-    di
-.loop:
+    ; end of program, debugger breakpoint
+    ; the emulator should stop execution here
+    ld      b, b
+
+.die:
     halt
-    jr      .loop
+    nop
+    jr      .die
 
 clearregs:
     xor      a, a
@@ -125,169 +129,33 @@ clearregs:
     ld       l, a
     ret
 
-all_good:
-    ; Sfx_ElevatorEnd from pokecrystal/audio/sfx.asm
-    ld      a, $80
-    ld      [rNR11], a
-    ld      a, $F3
-    ld      [rNR12], a
-    ld      a, $30
-    ld      [rNR13], a
-    ld      a, $87
-    ld      [rNR14], a
+storeResult:
+    ld       b, a                   ; put result in b
+    sramOn
 
-    ld      b, 15
-    call    waitVblanks
+    ld       a, [wResultsPointer]
+    ld       l, a
+    ld       a, [wResultsPointer+1]
+    ld       h, a
 
-    ld      a, $65
-    ld      [rNR12], a
-    ld      a, $87
-    ld      [rNR14], a
+    ld       a, b
+    ld       [hl+], a               ; store result code
+.copyName:
+    ld       a, [de]
+    inc      de
+    ld       [hl+], a
+    or       a, a
+    jr       nz, .copyName
 
-    ld      b, 8
-    call    waitVblanks
+    ld       a, l
+    ld       [wResultsPointer], a
+    ld       a, h
+    ld       [wResultsPointer+1], a
 
-    ld     a, $F4
-    ld     [rNR12], a
-    xor    a, a
-    ld     [rNR13], a
-    ld     a, $87
-    ld     [rNR14], a
-
-    ld     b, 15
-    call   waitVblanks
-
-    ld     a, $74
-    ld     [rNR12], a
-    ld     a, $87
-    ld     [rNR14], a
-
-    ld     b, 15
-    call   waitVblanks
-
-    ld     a, $44
-    ld     [rNR12], a
-    ld     a, $87
-    ld     [rNR14], a
-
-    ld     b, 15
-    call   waitVblanks
-
-    ld     a, $24
-    ld     [rNR12], a
-    ld     a, $87
-    ld     [rNR14], a
-
-    ld     b, 15
-    call   waitVblanks
-
-    ret 
-
-no_good:
-    ; Sfx_Wrong from pokecrystal/audio/sfx.asm
-    ld      a, $C0
-    ld      [rNR11], a
-    ld      [rNR21], a
-    ld      a, $5A
-    ld      [rNR10], a
-    ld      a, $F0
-    ld      [rNR12], a
-    ld      [rNR22], a
-    xor     a, a
-    ld      [rNR13], a
-    ld      a, $85
-    ld      [rNR14], a
-    ld      a, $1
-    ld      [rNR23], a
-    ld      a, $84
-    ld      [rNR24], a
-
-    ld      b, 4
-    call    waitVblanks
-
-    ld      a, $08
-    ld      [rNR10], a
-    xor     a, a
-    ld      [rNR12], a
-    ld      [rNR22], a
-    ld      [rNR13], a
-    ld      [rNR23], a
-    ld      a, $80
-    ld      [rNR14], a
-    ld      [rNR24], a
-
-    ld      b, 4
-    call    waitVblanks
-
-    ld      a, $F0
-    ld      [rNR12], a
-    ld      [rNR22], a
-    xor     a, a
-    ld      [rNR13], a
-    ld      a, 1
-    ld      [rNR23], a
-    ld      a, $85
-    ld      [rNR14], a
-    ld      a, $84
-    ld      [rNR24], a
-
-    ld      b, 15
-    call    waitVblanks
-
-    xor     a, a
-    ld      [rNR12], a
-    ld      [rNR13], a
-    ld      [rNR22], a
-    ld      [rNR23], a
-    ld      a, $80
-    ld      [rNR14], a
-    ld      [rNR24], a
-
-    call    waitVblank
+    sramOff
     ret
 
-test_passes:
-    ret
+SECTION "tester wram", WRAM0
 
-test_fails:
-    ld      a, $1
-    ret
-
-waitVblank:
-    push    af
-    xor     a, a
-    ld      [wVBlank], a
-.check:
-    halt
-    ld      a, [wVBlank]
-    or      a, a
-    jr      z, .check
-    pop     af
-    ret
-
-waitVblanks:
-    call    waitVblank
-    dec     b
-    jr      nz, waitVblanks
-    ret
-
-VBlank_isr:
-    push af
-    push bc
-    push de
-    push hl
-
-    ; set vblank flag
-    ld  a, 1
-    ld [wVBlank], a
-
-    pop hl
-    pop de
-    pop bc
-    pop af
-    reti
-
-SECTION "Tester WRAM", WRAM0
-
-wFailCount: DS 1
-wVBlank: DS 1
+wResultsPointer:
+    DS 2

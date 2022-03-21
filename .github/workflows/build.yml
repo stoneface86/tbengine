@@ -7,33 +7,50 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     env:
-      RGBDS_BUILD_DIR: ${{ github.workspace }}/rgbds-build
-      RGBDS_SOURCE_DIR: ${{ github.workspace }}/rgbds
-      RGBDS_VERSION: v0.5.2
+      BGB_DIR: ${{ github.workspace }}/bgb
+      BGB_VERSION: 1.5.9
+      RGBDS_DIR: ${{ github.workspace }}/rgbds
+      RGBDS_VERSION: 0.5.2
+
 
     steps:
     - uses: actions/checkout@v2
+
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: make
 
     - name: Cache RGBDS
       id: cache-rgbds
       uses: actions/cache@v2
       with:
-        path: ${{ env.RGBDS_BUILD_DIR }}
+        path: ${{ env.RGBDS_DIR }}
         key: rgbds-${{ runner.os }}-${{ env.RGBDS_VERSION }}
 
-    - name: Build RGBDS
+    - name: Get RGBDS
       if: steps.cache-rgbds.outputs.cache-hit != 'true'
       run: |
-        sudo apt-get update
-        sudo apt-get install bison libpng-dev
-        git clone https://github.com/gbdev/rgbds ${{ env.RGBDS_SOURCE_DIR }}
-        git -C ${{ env.RGBDS_SOURCE_DIR }} checkout tags/${{ env.RGBDS_VERSION }}
-        mkdir ${{ env.RGBDS_BUILD_DIR }}
-        cmake -S ${{ env.RGBDS_SOURCE_DIR }} -B ${{ env.RGBDS_BUILD_DIR }} -DCMAKE_BUILD_TYPE=Release
-        cmake --build ${{ env.RGBDS_BUILD_DIR }}
+        Invoke-WebRequest -OutFile rgbds.zip "https://github.com/gbdev/rgbds/releases/download/v${{env.RGBDS_VERSION}}/rgbds-${{env.RGBDS_VERSION}}-win64.zip"
+        Expand-Archive -Path rgbds.zip -DestinationPath "${{ env.RGBDS_DIR }}"
+
+    - name: Cache BGB
+      id: cache-bgb
+      uses: actions/cache@v2
+      with:
+        path: ${{ BGB_DIR }}
+        key: bgb-${{ env.BGB_VERSION }}
+    
+    - name: Get BGB
+      if: steps.cache-bgb.outputs.cache-hit != 'true'
+      run: |
+        Invoke-WebRequest -OutFile bgb.zip "https://bgb.bircd.org/bgb.zip"
+        Expand-Archive -Path bgb.zip -DestinationPath "${{ env.BGB_DIR }}"
 
     - name: Build
+      shell: msys2 {0}
       run: |
-        make RGBDS="${{ env.RGBDS_BUILD_DIR }}/src/" all
+        make BGB="bgb/bgb.exe" RGBDS="rgbds/" test

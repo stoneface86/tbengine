@@ -67,6 +67,41 @@ tbe_playSfx::
 tbe_update::
     ret
 
+
+; ; Fills a range in memory with a specified byte value.
+; ; hl = destination address
+; ; bc = byte count
+; ; a = byte value
+; memset:
+;     inc     c
+;     inc     b
+;     jr      .start
+; .repeat:
+;     ld      [hl+], a
+; .start:
+;     dec     c
+;     jr      nz, .repeat
+;     dec     b
+;     jr      nz, .repeat
+;     ret
+
+; ;
+; ; Copy data from a source address to a destination address
+; ; hl = source address
+; ; de = destination address
+; ; bc = number of bytes to copy
+; ;
+; memcpy:
+;     ld      a, [hl+]
+;     ld      [de], a
+;     inc     de
+;     dec     bc
+;     ld      a, b
+;     or      c
+;     jr      nz, _tbe_memcpy
+;     ret
+
+
 ; seqenum: sequence enumerator
 ; bytes 0-1: next pointer
 ; byte 2: remaining
@@ -140,6 +175,42 @@ seqenum_next::
     pop     de
     ret
 
+; call this to update nr51 if wPanningDirty is set
+update_nr51:
+    ; for any unlocked channels, we need to leave its flags in nr51 unchanged
+    ; so only update nr51 settings for locked channels
+    push    af
+    push    bc
+    push    hl
+    ld      hl, wPanning1
+    ld      a, [hl+]        ; put CH1 panning into b
+    ld      b, a
+    ld      a, [hl+]        ; combine with CH2
+    or      a, b
+    ld      b, a
+    ld      a, [hl+]        ; combine with CH3
+    or      a, b
+    ld      b, a
+    ld      a, [hl]         ; combine with CH4
+    or      a, b
+    ld      b, a            ; b = music panning
+    ld      a, [wLockFlags] ; get the lock flags
+    ld      c, a
+    cpl
+    and     a, b            ; ignore unlocked channels
+    ld      b, a            ; combine with music panning
+    ld      a, [rNR51]
+    and     a, c            ; combine with unlocked panning
+    or      a, b
+    ld      [rNR51], a      ; update nr51
+
+    ; clear dirty flag
+    xor     a, a
+    ld      [wPanningDirty], a
+    pop     hl
+    pop     bc
+    pop     af
+    ret
 
 
 tbe_end:
@@ -151,6 +222,16 @@ ENDC
 ;                                                                         WRAM0
 SECTION "tbengine_wram", WRAM0
 tbe_wWramBegin:
+
+wLockFlags: DS 1
+
+wPanningDirty: DS 1
+wPanning1: DS 1
+wPanning2: DS 1
+wPanning3: DS 1
+wPanning4: DS 1
+
+
 
 tbe_wWramEnd:
 IF DEF(TBE_PRINT_USAGE)

@@ -14,7 +14,12 @@ SRC_DIR := ./
 #
 # BGB emulator
 #
-BGB := bgb
+BGB ?= bgb
+
+#
+# python3
+#
+PY ?= python
 
 PAD_VALUE := 0xFF
 
@@ -33,7 +38,8 @@ RGBGFX := $(RGBDS)rgbgfx
 
 TESTER_OBJ := tests/tester.obj \
               tests/tbengine.obj \
-              tests/test_seqenum.obj
+              tests/test_seqenum.obj \
+              tests/test_update_nr51.obj
 TESTER_OBJ := $(addprefix $(BUILD_DIR)/,$(TESTER_OBJ))
 # dependency files
 TESTER_DEPS := $(TESTER_OBJ:.obj=.d)
@@ -87,10 +93,13 @@ all: $(TESTER_GB)
 #lib: $(BUILD_DIR)/$(TBENGINE_OBJ)
 
 test: $(TESTER_GB)
+	@echo "TEST     $(TESTER_GB)"
+	@$(BGB) -rom $(TESTER_GB) -hf
+	@$(PY) $(SRC_DIR)/tests/savchecker.py $(TESTER_GB:.gb=.sav)
 
 define ASSEMBLE_RULE
 	@echo "ASM      $@"
-	@$(RGBASM) $(ASM_FLAGS) $(DEFINES) -M $(BUILD_DIR)/$*.d -o $@ $<
+	@$(RGBASM) $(ASM_FLAGS) -h $(DEFINES) -M $(BUILD_DIR)/$*.d -o $@ $<
 endef
 
 # export all symbols so we can test everything
@@ -128,7 +137,7 @@ $(TESTER_GB): $(TESTER_OBJ) $(MAKEFILE_LIST)
 	@echo "LINK     $@"
 	@$(RGBLINK) -m $(TESTER_MAP) -n $(TESTER_SYM) -o $@ $(TESTER_OBJ)
 	@echo "FIX      $@"
-	@$(RGBFIX) -f lhg -i "TEST" -t "Tester" -p $(PAD_VALUE) $@
+	@$(RGBFIX) -f lhg -i "TEST" -t "Tester" -p $(PAD_VALUE) -m 0x03 -r 0x02 $@
 
 $(OBJ_FILES): | $(OBJ_DIRS)
 
