@@ -1,0 +1,3 @@
+
+tbeWaveTable::
+    DB 0
